@@ -115,7 +115,7 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   );
 
   const Separator = () => (
-    <div className="flex items-center justify-center h-28 hidden sm:flex">
+    <div className="flex items-center justify-center h-28 sm:flex">
       <span className="text-4xl font-bold text-primary-300 dark:text-primary-700 animate-pulse">
         :
       </span>

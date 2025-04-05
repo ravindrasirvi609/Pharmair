@@ -18,7 +18,9 @@ const buttonVariants = cva(
         ghost:
           "bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-50",
         glass:
-          "glass dark:glass-dark glass-hover dark:glass-hover-dark text-gray-900 dark:text-white",
+          "backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border border-white/20 dark:border-gray-700/30 shadow-lg hover:shadow-xl hover:bg-white/30 dark:hover:bg-gray-800/40 transition-all duration-300",
+        gradient:
+          "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-blue-500/20 transition-all duration-300",
       },
       size: {
         sm: "h-8 px-3 text-xs",
@@ -31,6 +33,7 @@ const buttonVariants = cva(
         sm: "rounded-sm",
         md: "rounded-md",
         lg: "rounded-lg",
+        xl: "rounded-xl",
         full: "rounded-full",
       },
       isLoading: {
