@@ -1,5 +1,6 @@
 node_modules
 .vscode
+.next
 dist
 package-lock.json
 yarn-error.log
