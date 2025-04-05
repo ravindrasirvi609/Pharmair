@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { Card } from "./Card";
 
 interface CountdownTimerProps {
@@ -82,43 +82,28 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
     );
   }
 
-  // Individual time unit component with animation
+  // Individual time unit component with subtle animation only when value changes
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
     <div className="flex flex-col items-center">
       <Card
         variant="glass"
         hover="raise"
-        className="w-24 h-28 flex flex-col items-center justify-center shadow-lg relative overflow-hidden"
+        className="w-24 h-28 flex flex-col items-center justify-center shadow-md relative overflow-hidden transition-shadow duration-300"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-primary-50/20 to-secondary-50/20 dark:from-primary-900/20 dark:to-secondary-900/20" />
-        <AnimatePresence mode="popLayout">
-          <motion.span
-            key={value}
-            className="text-4xl font-bold text-gradient"
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-            }}
-          >
-            {value.toString().padStart(2, "0")}
-          </motion.span>
-        </AnimatePresence>
+        <motion.span
+          className="text-4xl font-bold text-gradient"
+          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 1, scale: 1 }}
+          key={`static-${label}`}
+          transition={{ duration: 0.2 }}
+        >
+          {value.toString().padStart(2, "0")}
+        </motion.span>
         <span className="text-xs uppercase tracking-wider mt-2 text-muted-foreground font-medium">
           {label}
         </span>
       </Card>
-    </div>
-  );
-
-  const Separator = () => (
-    <div className="flex items-center justify-center h-28 sm:flex">
-      <span className="text-4xl font-bold text-primary-300 dark:text-primary-700 animate-pulse">
-        :
-      </span>
     </div>
   );
 
@@ -136,11 +121,8 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
       )}
       <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-2 max-w-2xl mx-auto">
         <TimeUnit value={timeLeft.days} label="Days" />
-        <Separator />
         <TimeUnit value={timeLeft.hours} label="Hours" />
-        <Separator />
         <TimeUnit value={timeLeft.minutes} label="Minutes" />
-        <Separator />
         <TimeUnit value={timeLeft.seconds} label="Seconds" />
       </div>
     </motion.div>
