@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card } from "./Card";
 
 interface CountdownTimerProps {
@@ -66,56 +66,83 @@ export const CountdownTimer: React.FC<CountdownTimerProps> = ({
   // Countdown has expired
   if (timeLeft.expired) {
     return (
-      <div className={`text-center ${className}`}>
-        <h2 className="text-xl font-bold text-primary-700 dark:text-primary-400">
+      <motion.div
+        className={`text-center p-6 rounded-xl glass dark:glass-dark ${className}`}
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h2 className="text-2xl font-bold text-gradient">
           The conference has started!
         </h2>
-      </div>
+        <p className="mt-2 text-muted-foreground">
+          Join us now for this exciting event!
+        </p>
+      </motion.div>
     );
   }
 
   // Individual time unit component with animation
   const TimeUnit = ({ value, label }: { value: number; label: string }) => (
-    <motion.div
-      className="flex flex-col items-center"
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="flex flex-col items-center">
       <Card
         variant="glass"
-        className="w-full sm:w-20 h-20 sm:h-24 flex items-center justify-center mb-2"
+        hover="raise"
+        className="w-24 h-28 flex flex-col items-center justify-center shadow-lg relative overflow-hidden"
       >
-        <motion.span
-          key={value} // This causes re-render and animation when value changes
-          className="text-3xl sm:text-4xl font-bold"
-          initial={{ y: 10, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -10, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-        >
-          {value.toString().padStart(2, "0")}
-        </motion.span>
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-50/20 to-secondary-50/20 dark:from-primary-900/20 dark:to-secondary-900/20" />
+        <AnimatePresence mode="popLayout">
+          <motion.span
+            key={value}
+            className="text-4xl font-bold text-gradient"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -20, opacity: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+            }}
+          >
+            {value.toString().padStart(2, "0")}
+          </motion.span>
+        </AnimatePresence>
+        <span className="text-xs uppercase tracking-wider mt-2 text-muted-foreground font-medium">
+          {label}
+        </span>
       </Card>
-      <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-        {label}
+    </div>
+  );
+
+  const Separator = () => (
+    <div className="flex items-center justify-center h-28 hidden sm:flex">
+      <span className="text-4xl font-bold text-primary-300 dark:text-primary-700 animate-pulse">
+        :
       </span>
-    </motion.div>
+    </div>
   );
 
   return (
-    <div className={className}>
+    <motion.div
+      className={`py-6 ${className}`}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6 }}
+    >
       {title && (
-        <h3 className="text-lg sm:text-xl font-semibold mb-4 text-center">
+        <h3 className="text-xl sm:text-2xl font-semibold mb-6 text-center text-gradient">
           {title}
         </h3>
       )}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 max-w-xl mx-auto">
+      <div className="flex flex-wrap justify-center items-center gap-4 sm:gap-2 max-w-2xl mx-auto">
         <TimeUnit value={timeLeft.days} label="Days" />
+        <Separator />
         <TimeUnit value={timeLeft.hours} label="Hours" />
+        <Separator />
         <TimeUnit value={timeLeft.minutes} label="Minutes" />
+        <Separator />
         <TimeUnit value={timeLeft.seconds} label="Seconds" />
       </div>
-    </div>
+    </motion.div>
   );
 };
