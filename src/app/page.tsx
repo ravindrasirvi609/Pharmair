@@ -60,7 +60,7 @@ export default function Home() {
             transition={{ duration: 0.8 }}
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
-              <span className="block">Pharmair Conference</span>
+              <span className="block">PharMAIR Conference</span>
               <span className="text-gradient bg-gradient-to-r from-blue-200 via-white to-blue-100">
                 {conferenceYear}
               </span>
@@ -94,9 +94,10 @@ export default function Home() {
                 variant="glass"
                 size="lg"
                 animate
-                onClick={() => (window.location.href = "/agenda")}
+                onClick={() => (window.location.href = "/abstract-submission")}
+                className="border-white/20 dark:border-gray-700/30"
               >
-                View Schedule
+                Abstract Submission
               </Button>
             </div>
           </motion.div>

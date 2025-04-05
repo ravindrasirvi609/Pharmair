@@ -89,7 +89,7 @@ const NavBar: React.FC = () => {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
-              Pharmair
+              PharmMAIR
             </span>
             <span className="text-sm bg-secondary-600 dark:bg-secondary-700 text-white px-2 py-0.5 rounded-full">
               2025
