@@ -14,6 +14,7 @@ interface Abstract {
   status: string;
   abstractCode: string;
   createdAt: string;
+  abstractFileUrl?: string; // Add the missing property as optional
 }
 
 export default function AbstractsPage() {

@@ -3,6 +3,17 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
+// Define proper interfaces for our data types
+interface Registration {
+  registrationStatus: string;
+  // Add other properties as needed
+}
+
+interface Abstract {
+  status: string;
+  // Add other properties as needed
+}
+
 interface DashboardStats {
   totalRegistrations: number;
   confirmedRegistrations: number;
@@ -38,23 +49,23 @@ export default function AdminDashboard() {
         const absData = await absResponse.json();
 
         if (regData.success && absData.success) {
-          const registrations = regData.data;
-          const abstracts = absData.data;
+          const registrations = regData.data as Registration[];
+          const abstracts = absData.data as Abstract[];
 
           setStats({
             totalRegistrations: registrations.length,
             confirmedRegistrations: registrations.filter(
-              (reg: any) => reg.registrationStatus === "Confirmed"
+              (reg: Registration) => reg.registrationStatus === "Confirmed"
             ).length,
             pendingRegistrations: registrations.filter(
-              (reg: any) => reg.registrationStatus === "Pending"
+              (reg: Registration) => reg.registrationStatus === "Pending"
             ).length,
             totalAbstracts: abstracts.length,
             acceptedAbstracts: abstracts.filter(
-              (abs: any) => abs.status === "Accepted"
+              (abs: Abstract) => abs.status === "Accepted"
             ).length,
             inReviewAbstracts: abstracts.filter(
-              (abs: any) => abs.status === "InReview"
+              (abs: Abstract) => abs.status === "InReview"
             ).length,
           });
         } else {

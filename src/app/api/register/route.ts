@@ -8,6 +8,13 @@ import {
   REGISTRATION_FEES,
 } from "../../../lib/services/razorpay";
 
+// Define interface for query parameters
+interface RegistrationQuery {
+  _id?: string;
+  email?: string;
+  registrationCode?: string;
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -85,10 +92,7 @@ export async function POST(request: NextRequest) {
     await registration.save();
 
     // Generate QR code
-    const qrCodeUrl = await generateQrCodeUrl(
-      registration.registrationCode,
-      "registration"
-    );
+    const qrCodeUrl = await generateQrCodeUrl(registration.registrationCode);
     registration.qrCodeUrl = qrCodeUrl;
     await registration.save();
 
@@ -137,10 +141,12 @@ export async function POST(request: NextRequest) {
         paymentAmount: registrationFee,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Registration failed";
     console.error("Registration error:", error);
     return NextResponse.json(
-      { success: false, message: error.message || "Registration failed" },
+      { success: false, message: errorMessage },
       { status: 500 }
     );
   }
@@ -168,7 +174,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Build query based on provided parameters
-    let query: any = {};
+    const query: RegistrationQuery = {};
     if (registrationId) query._id = registrationId;
     else if (email) query.email = email;
     else if (registrationCode) query.registrationCode = registrationCode;
@@ -188,12 +194,14 @@ export async function GET(request: NextRequest) {
       success: true,
       data: registration,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to fetch registration";
     console.error("Error fetching registration:", error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || "Failed to fetch registration",
+        message: errorMessage,
       },
       { status: 500 }
     );

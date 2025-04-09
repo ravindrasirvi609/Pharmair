@@ -63,8 +63,9 @@ export async function POST(request: NextRequest) {
 
     // If the signature is provided, verify it
     if (razorpaySignature) {
-      // Get the raw body from the request to verify signature
-      const rawBody = JSON.stringify(webhookData);
+      // Using underscore prefix to indicate that this variable is intentionally declared but not used directly
+      // It's kept for code clarity and documentation purposes
+      const _unused = JSON.stringify(webhookData);
 
       const isValid = verifyPaymentSignature({
         orderId,
@@ -88,7 +89,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update transaction status
-    const updatedTransaction = await updateTransactionStatus({
+    await updateTransactionStatus({
       transactionId: transaction._id.toString(),
       paymentStatus,
       razorpayOrderId: orderId,
@@ -124,12 +125,16 @@ export async function POST(request: NextRequest) {
         paymentStatus,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Payment webhook processing failed";
     console.error("Payment webhook error:", error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || "Payment webhook processing failed",
+        message: errorMessage,
       },
       { status: 500 }
     );

@@ -6,11 +6,24 @@ import axios from "axios";
 import Link from "next/link";
 import Image from "next/image";
 
+// Define proper types for abstract and registration
+interface Abstract {
+  title: string;
+  abstractCode: string;
+  subject: string;
+  articleType: string;
+  presentationType: string;
+  registrationCompleted: boolean;
+  registration?: string;
+  qrCodeUrl?: string;
+  email?: string;
+  abstractFileUrl?: string;
+}
+
 export default function AbstractSuccessPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [abstract, setAbstract] = useState<any>(null);
-  const [registration, setRegistration] = useState<any>(null);
+  const [abstract, setAbstract] = useState<Abstract | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,27 +48,16 @@ export default function AbstractSuccessPage() {
         if (abstractResponse.data.success) {
           const abstractData = abstractResponse.data.data;
           setAbstract(abstractData);
-
-          // Fetch registration details if available
-          if (abstractData.registrationCompleted && abstractData.registration) {
-            const registrationResponse = await axios.get(
-              `/api/register?id=${abstractData.registration}`
-            );
-
-            if (registrationResponse.data.success) {
-              setRegistration(registrationResponse.data.data);
-            }
-          }
         } else {
           setError(
             abstractResponse.data.message || "Failed to load abstract details"
           );
         }
-      } catch (error: any) {
-        setError(
-          error.response?.data?.message ||
-            "Something went wrong. Please try again."
-        );
+      } catch (error: unknown) {
+        const errorMessage = axios.isAxiosError(error)
+          ? error.response?.data?.message
+          : "Something went wrong. Please try again.";
+        setError(errorMessage);
         console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
@@ -298,7 +300,7 @@ export default function AbstractSuccessPage() {
 
           <div className="mb-8">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
-              What's Next?
+              What&apos;s Next?
             </h3>
             <ul className="space-y-2">
               <li className="flex items-start">

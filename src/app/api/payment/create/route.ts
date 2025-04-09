@@ -102,18 +102,20 @@ export async function POST(request: NextRequest) {
       success: true,
       data: {
         orderId: order.id,
-        amount: order.amount / 100, // Convert back from paise to rupees for display
+        amount: (order.amount as number) / 100, // Convert back from paise to rupees for display
         currency: order.currency,
         transactionId: transaction._id,
         userId: transaction.userId,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to create payment order";
     console.error("Error creating payment order:", error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || "Failed to create payment order",
+        message: errorMessage,
       },
       { status: 500 }
     );

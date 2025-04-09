@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Registration from "../../../../models/Registration";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Connect to the database
     const registrations = await Registration.find({})

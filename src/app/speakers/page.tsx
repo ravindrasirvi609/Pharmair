@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UserGroupIcon,
@@ -24,105 +24,108 @@ interface Speaker {
 }
 
 export default function SpeakersPage() {
-  // Sample speaker data
-  const speakerData: Speaker[] = [
-    {
-      id: 1,
-      name: "Dr. Sarah Johnson",
-      role: "Chief Medical Officer",
-      organization: "NovaTech Pharmaceuticals",
-      country: "United States",
-      bio: "Dr. Johnson leads research in next-generation drug delivery systems with over 15 years of experience in pharmaceutical innovation.",
-      topics: ["Drug Delivery", "Clinical Trials", "Regulatory Affairs"],
-      track: "Clinical Development",
-      image: "/profile1.jpg",
-      featured: true,
-    },
-    {
-      id: 2,
-      name: "Prof. Michael Chang",
-      role: "Research Director",
-      organization: "Global Health Institute",
-      country: "Singapore",
-      bio: "Prof. Chang's work on sustainable pharmaceutical manufacturing has transformed industry standards across Asia and Europe.",
-      topics: ["Manufacturing", "Sustainability", "Process Optimization"],
-      track: "Manufacturing",
-      image: "/profile2.jpg",
-      featured: true,
-    },
-    {
-      id: 3,
-      name: "Dr. Elena Rodriguez",
-      role: "Head of Innovation",
-      organization: "MediCore Labs",
-      country: "Spain",
-      bio: "Dr. Rodriguez specializes in applying artificial intelligence to accelerate drug discovery and development pipelines.",
-      topics: ["AI & Machine Learning", "Drug Discovery", "Bioinformatics"],
-      track: "Research & Discovery",
-      image: "/profile3.jpg",
-      featured: true,
-    },
-    {
-      id: 4,
-      name: "Dr. James Wilson",
-      role: "VP of Clinical Development",
-      organization: "Biogen",
-      country: "United Kingdom",
-      bio: "Dr. Wilson has led over 20 successful clinical trials for novel therapeutics targeting neurological disorders.",
-      topics: ["Neurology", "Clinical Trials", "Drug Safety"],
-      track: "Clinical Development",
-      image: "/profile4.jpg",
-      featured: false,
-    },
-    {
-      id: 5,
-      name: "Dr. Aisha Patel",
-      role: "Director of Regulatory Affairs",
-      organization: "Pfizer",
-      country: "India",
-      bio: "Dr. Patel is an expert in global regulatory strategies for pharmaceutical products, with particular focus on emerging markets.",
-      topics: ["Regulatory Affairs", "Market Access", "Policy"],
-      track: "Regulatory & Compliance",
-      image: "/profile5.jpg",
-      featured: false,
-    },
-    {
-      id: 6,
-      name: "Prof. Hiroshi Tanaka",
-      role: "Chief Scientific Officer",
-      organization: "Tokyo Medical Research Center",
-      country: "Japan",
-      bio: "Prof. Tanaka's research on personalized medicine using genomic data has pioneered new approaches to treating cancer.",
-      topics: ["Genomics", "Personalized Medicine", "Oncology"],
-      track: "Research & Discovery",
-      image: "/profile6.jpg",
-      featured: false,
-    },
-    {
-      id: 7,
-      name: "Dr. Olivia Martinez",
-      role: "Senior Researcher",
-      organization: "Mayo Clinic",
-      country: "United States",
-      bio: "Dr. Martinez focuses on developing novel immunotherapies for autoimmune disorders and infectious diseases.",
-      topics: ["Immunology", "Vaccine Development", "Clinical Trials"],
-      track: "Clinical Development",
-      image: "/profile7.jpg",
-      featured: false,
-    },
-    {
-      id: 8,
-      name: "Dr. Thomas Weber",
-      role: "Head of Digital Health",
-      organization: "Roche",
-      country: "Germany",
-      bio: "Dr. Weber leads initiatives integrating digital technologies, IoT, and data analytics into healthcare delivery and pharmaceutical research.",
-      topics: ["Digital Health", "Data Science", "Healthcare IoT"],
-      track: "Digital & Technology",
-      image: "/profile8.jpg",
-      featured: false,
-    },
-  ];
+  // Sample speaker data wrapped in useMemo to avoid recreation on each render
+  const speakerData = useMemo<Speaker[]>(
+    () => [
+      {
+        id: 1,
+        name: "Dr. Sarah Johnson",
+        role: "Chief Medical Officer",
+        organization: "NovaTech Pharmaceuticals",
+        country: "United States",
+        bio: "Dr. Johnson leads research in next-generation drug delivery systems with over 15 years of experience in pharmaceutical innovation.",
+        topics: ["Drug Delivery", "Clinical Trials", "Regulatory Affairs"],
+        track: "Clinical Development",
+        image: "/profile1.jpg",
+        featured: true,
+      },
+      {
+        id: 2,
+        name: "Prof. Michael Chang",
+        role: "Research Director",
+        organization: "Global Health Institute",
+        country: "Singapore",
+        bio: "Prof. Chang's work on sustainable pharmaceutical manufacturing has transformed industry standards across Asia and Europe.",
+        topics: ["Manufacturing", "Sustainability", "Process Optimization"],
+        track: "Manufacturing",
+        image: "/profile2.jpg",
+        featured: true,
+      },
+      {
+        id: 3,
+        name: "Dr. Elena Rodriguez",
+        role: "Head of Innovation",
+        organization: "MediCore Labs",
+        country: "Spain",
+        bio: "Dr. Rodriguez specializes in applying artificial intelligence to accelerate drug discovery and development pipelines.",
+        topics: ["AI & Machine Learning", "Drug Discovery", "Bioinformatics"],
+        track: "Research & Discovery",
+        image: "/profile3.jpg",
+        featured: true,
+      },
+      {
+        id: 4,
+        name: "Dr. James Wilson",
+        role: "VP of Clinical Development",
+        organization: "Biogen",
+        country: "United Kingdom",
+        bio: "Dr. Wilson has led over 20 successful clinical trials for novel therapeutics targeting neurological disorders.",
+        topics: ["Neurology", "Clinical Trials", "Drug Safety"],
+        track: "Clinical Development",
+        image: "/profile4.jpg",
+        featured: false,
+      },
+      {
+        id: 5,
+        name: "Dr. Aisha Patel",
+        role: "Director of Regulatory Affairs",
+        organization: "Pfizer",
+        country: "India",
+        bio: "Dr. Patel is an expert in global regulatory strategies for pharmaceutical products, with particular focus on emerging markets.",
+        topics: ["Regulatory Affairs", "Market Access", "Policy"],
+        track: "Regulatory & Compliance",
+        image: "/profile5.jpg",
+        featured: false,
+      },
+      {
+        id: 6,
+        name: "Prof. Hiroshi Tanaka",
+        role: "Chief Scientific Officer",
+        organization: "Tokyo Medical Research Center",
+        country: "Japan",
+        bio: "Prof. Tanaka's research on personalized medicine using genomic data has pioneered new approaches to treating cancer.",
+        topics: ["Genomics", "Personalized Medicine", "Oncology"],
+        track: "Research & Discovery",
+        image: "/profile6.jpg",
+        featured: false,
+      },
+      {
+        id: 7,
+        name: "Dr. Olivia Martinez",
+        role: "Senior Researcher",
+        organization: "Mayo Clinic",
+        country: "United States",
+        bio: "Dr. Martinez focuses on developing novel immunotherapies for autoimmune disorders and infectious diseases.",
+        topics: ["Immunology", "Vaccine Development", "Clinical Trials"],
+        track: "Clinical Development",
+        image: "/profile7.jpg",
+        featured: false,
+      },
+      {
+        id: 8,
+        name: "Dr. Thomas Weber",
+        role: "Head of Digital Health",
+        organization: "Roche",
+        country: "Germany",
+        bio: "Dr. Weber leads initiatives integrating digital technologies, IoT, and data analytics into healthcare delivery and pharmaceutical research.",
+        topics: ["Digital Health", "Data Science", "Healthcare IoT"],
+        track: "Digital & Technology",
+        image: "/profile8.jpg",
+        featured: false,
+      },
+    ],
+    []
+  );
 
   // Available filters
   const tracks = Array.from(
@@ -175,7 +178,7 @@ export default function SpeakersPage() {
     }
 
     setDisplayedSpeakers(filtered);
-  }, [activeTrack, activeCountry, activeTopic, searchQuery]);
+  }, [activeTrack, activeCountry, activeTopic, searchQuery, speakerData]);
 
   // Reset all filters
   const resetFilters = () => {

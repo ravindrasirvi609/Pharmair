@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/db";
 import Transaction from "../../../models/Transaction";
 
+// Define interface for transaction query
+interface TransactionQuery {
+  userId?: string;
+  _id?: string;
+  paymentStatus?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -23,7 +30,7 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Query based on provided parameters
-    let query: any = {};
+    const query: TransactionQuery = {};
 
     if (userId) query.userId = userId;
     if (transactionId) query._id = transactionId;
@@ -60,12 +67,14 @@ export async function GET(request: NextRequest) {
       success: true,
       data: transactions,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to fetch transactions";
     console.error("Error fetching transactions:", error);
     return NextResponse.json(
       {
         success: false,
-        message: error.message || "Failed to fetch transactions",
+        message: errorMessage,
       },
       { status: 500 }
     );

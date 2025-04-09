@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Abstract from "../../../../models/Abstract";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Connect to the database
     const abstracts = await Abstract.find({})

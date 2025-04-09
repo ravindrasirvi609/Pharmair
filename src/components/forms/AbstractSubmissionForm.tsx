@@ -192,11 +192,13 @@ export default function AbstractSubmissionForm({
       } else {
         setError(response.data.message || "Abstract submission failed");
       }
-    } catch (error: any) {
-      setError(
-        error.response?.data?.message ||
+    } catch (error: unknown) {
+      const errorMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message ||
           "Something went wrong. Please try again."
-      );
+        : "Something went wrong. Please try again.";
+
+      setError(errorMessage);
       console.error("Abstract submission error:", error);
     } finally {
       setLoading(false);
