@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -20,7 +20,20 @@ interface Abstract {
   abstractFileUrl?: string;
 }
 
-export default function AbstractSuccessPage() {
+// Loading component to use as fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-4 text-lg">Loading abstract details...</p>
+      </div>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams
+function AbstractSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [abstract, setAbstract] = useState<Abstract | null>(null);
@@ -189,7 +202,11 @@ export default function AbstractSuccessPage() {
                 </p>
                 <p className="font-medium">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${abstract?.registrationCompleted ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      abstract?.registrationCompleted
+                        ? "bg-green-100 text-green-800"
+                        : "bg-yellow-100 text-yellow-800"
+                    }`}
                   >
                     {abstract?.registrationCompleted ? "Complete" : "Pending"}
                   </span>
@@ -389,5 +406,13 @@ export default function AbstractSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AbstractSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AbstractSuccessContent />
+    </Suspense>
   );
 }

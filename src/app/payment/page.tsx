@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -30,7 +30,26 @@ interface Registration {
   needAccommodation?: boolean;
 }
 
-export default function PaymentPage() {
+// Loading component to use as fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center"
+      >
+        <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-primary-600 dark:border-primary-400"></div>
+        <p className="mt-6 text-xl font-medium text-gray-800 dark:text-gray-200">
+          Loading payment details...
+        </p>
+      </motion.div>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams
+function PaymentContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [registration, setRegistration] = useState<Registration | null>(null);
@@ -407,5 +426,13 @@ export default function PaymentPage() {
         </motion.div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <PaymentContent />
+    </Suspense>
   );
 }
