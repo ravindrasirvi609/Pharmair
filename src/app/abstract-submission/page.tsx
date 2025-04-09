@@ -1,11 +1,24 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import AbstractSubmissionForm from "@/components/forms/AbstractSubmissionForm";
 import Link from "next/link";
 
-export default function AbstractSubmissionPage() {
+// Loading component to use as fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-4 text-lg">Loading abstract submission form...</p>
+      </div>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams
+function AbstractSubmissionContent() {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
   const email = searchParams.get("email");
@@ -376,5 +389,13 @@ export default function AbstractSubmissionPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AbstractSubmissionPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AbstractSubmissionContent />
+    </Suspense>
   );
 }
