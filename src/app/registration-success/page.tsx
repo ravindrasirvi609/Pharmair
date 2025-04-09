@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -18,7 +18,20 @@ interface RegistrationData {
   qrCodeUrl?: string;
 }
 
-export default function RegistrationSuccessPage() {
+// Loading component to use as fallback
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="text-center">
+        <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <p className="mt-4 text-lg">Loading registration details...</p>
+      </div>
+    </div>
+  );
+}
+
+// Component that uses useSearchParams
+function RegistrationSuccessContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [registration, setRegistration] = useState<RegistrationData | null>(
@@ -332,5 +345,13 @@ export default function RegistrationSuccessPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegistrationSuccessPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <RegistrationSuccessContent />
+    </Suspense>
   );
 }
