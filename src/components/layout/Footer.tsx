@@ -157,7 +157,7 @@ const Footer: React.FC = () => {
                   aria-hidden="true"
                 />
                 <span className="ml-3 text-gray-600 dark:text-gray-400">
-                  info@pharmair-conference.com
+                  info@pharmanecia.org
                 </span>
               </li>
             </ul>

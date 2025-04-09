@@ -115,26 +115,26 @@ export default function ContactPage() {
                       <p className="text-gray-600 dark:text-gray-300">
                         General Inquiries:{" "}
                         <a
-                          href="mailto:info@pharmair-conference.com"
+                          href="mailto:info@pharmanecia.org"
                           className="text-primary-600 dark:text-primary-400 hover:underline"
                         >
-                          info@pharmair-conference.com
+                          info@pharmanecia.org
                         </a>
                         <br />
                         Registration Support:{" "}
                         <a
-                          href="mailto:registration@pharmair-conference.com"
+                          href="mailto:registration@pharmanecia.org"
                           className="text-primary-600 dark:text-primary-400 hover:underline"
                         >
-                          registration@pharmair-conference.com
+                          registration@pharmanecia.org
                         </a>
                         <br />
                         Speaker Coordination:{" "}
                         <a
-                          href="mailto:speakers@pharmair-conference.com"
+                          href="mailto:speakers@pharmanecia.org"
                           className="text-primary-600 dark:text-primary-400 hover:underline"
                         >
-                          speakers@pharmair-conference.com
+                          speakers@pharmanecia.org
                         </a>
                       </p>
                     </div>

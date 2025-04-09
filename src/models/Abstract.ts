@@ -1,8 +1,11 @@
-import { mongoose } from "../lib/db";
-import { Schema } from "mongoose";
+import mongoose from "mongoose";
+import { connectToDatabase } from "../lib/db";
+
+// Ensure database connection
+connectToDatabase();
 
 // Define abstract schema
-const abstractSchema = new Schema(
+const abstractSchema = new mongoose.Schema(
   {
     // Identification Information
     email: { type: String, required: true },
@@ -54,7 +57,7 @@ const abstractSchema = new Schema(
     registrationCompleted: { type: Boolean, default: false },
 
     // References
-    registration: { type: Schema.Types.ObjectId, ref: "Registration" },
+    registration: { type: mongoose.Schema.Types.ObjectId, ref: "Registration" },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt

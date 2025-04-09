@@ -12,8 +12,10 @@ const firebaseApp =
         credential: cert({
           projectId: process.env.FIREBASE_PROJECT_ID,
           clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-          privateKey:
-            process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n") || "",
+          // Handle the private key properly by trying different formats
+          privateKey: process.env.FIREBASE_PRIVATE_KEY
+            ? process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n")
+            : undefined,
         }),
         storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
       })
@@ -146,10 +148,7 @@ export async function uploadProfileImage(
 /**
  * Generate a QR code URL for a given code
  */
-export async function generateQrCodeUrl(
-  code: string,
-  type: "registration" | "abstract"
-) {
+export async function generateQrCodeUrl(code: string) {
   // Using Google Charts API for QR code generation (no Firebase needed)
   const encodedData = encodeURIComponent(code);
   return `https://chart.googleapis.com/chart?cht=qr&chl=${encodedData}&chs=250x250&chld=L|1`;

@@ -3,13 +3,37 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import axios from "axios";
+import { motion } from "framer-motion";
+import {
+  CreditCardIcon,
+  UserCircleIcon,
+  EnvelopeIcon,
+  IdentificationIcon,
+  BuildingLibraryIcon,
+  CheckCircleIcon,
+  ExclamationCircleIcon,
+  LockClosedIcon,
+  ShieldCheckIcon,
+  ArrowLeftIcon,
+} from "@heroicons/react/24/outline";
 import PaymentButton from "@/components/ui/PaymentButton";
-import { REGISTRATION_FEES } from "@/lib/services/razorpay";
+import { REGISTRATION_FEES } from "@/lib/services/razorpay-constants";
+import { Card, CardContent } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+
+interface Registration {
+  name: string;
+  email: string;
+  registrationType: string;
+  registrationCode: string;
+  paymentStatus: string;
+  needAccommodation?: boolean;
+}
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [registration, setRegistration] = useState<any>(null);
+  const [registration, setRegistration] = useState<Registration | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -57,9 +81,12 @@ export default function PaymentPage() {
             response.data.message || "Failed to load registration details"
           );
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const axiosError = error as {
+          response?: { data?: { message?: string } };
+        };
         setError(
-          error.response?.data?.message ||
+          axiosError.response?.data?.message ||
             "Something went wrong. Please try again."
         );
         console.error("Error fetching registration:", error);
@@ -81,7 +108,7 @@ export default function PaymentPage() {
     init();
   }, [registrationId]);
 
-  const handlePaymentSuccess = (response: any) => {
+  const handlePaymentSuccess = () => {
     setSuccess(true);
     // Redirect to success page after 2 seconds
     setTimeout(() => {
@@ -89,7 +116,7 @@ export default function PaymentPage() {
     }, 2000);
   };
 
-  const handlePaymentError = (error: any) => {
+  const handlePaymentError = (error: Error | unknown) => {
     setError("Payment failed. Please try again.");
     console.error("Payment error:", error);
   };
@@ -103,7 +130,8 @@ export default function PaymentPage() {
   };
 
   // Calculate fee based on registration type
-  const calculateFee = (registrationType: string) => {
+  const calculateFee = (registrationType: string | undefined) => {
+    if (!registrationType) return 0;
     return (
       REGISTRATION_FEES[registrationType as keyof typeof REGISTRATION_FEES] || 0
     );
@@ -111,195 +139,272 @@ export default function PaymentPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="mt-4 text-lg">Loading payment details...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center"
+        >
+          <div className="inline-block animate-spin rounded-full h-16 w-16 border-t-3 border-b-3 border-primary-600 dark:border-primary-400"></div>
+          <p className="mt-6 text-xl font-medium text-gray-800 dark:text-gray-200">
+            Loading payment details...
+          </p>
+        </motion.div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <div className="text-red-500 text-center mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-            Error
-          </h2>
-          <p className="text-center text-gray-600 mb-6">{error}</p>
-          <div className="flex justify-center">
-            <button
-              onClick={() => router.push("/registration")}
-              className="bg-blue-600 text-white py-2 px-6 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Back to Registration
-            </button>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card variant="default" className="max-w-md w-full">
+            <CardContent className="pt-8 pb-6 text-center">
+              <div className="text-red-500 mb-6">
+                <ExclamationCircleIcon className="mx-auto h-16 w-16" />
+              </div>
+              <h2 className="text-2xl font-bold mb-4">Error</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">{error}</p>
+              <Button
+                variant="default"
+                size="lg"
+                animate
+                onClick={() => router.push("/registration")}
+                className="inline-flex items-center"
+              >
+                <ArrowLeftIcon className="mr-2 h-5 w-5" />
+                Back to Registration
+              </Button>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-          <div className="text-green-500 text-center mb-4">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="mx-auto h-12 w-12"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
-          <h2 className="text-2xl font-bold text-center text-gray-800 mb-4">
-            Payment Successful!
-          </h2>
-          <p className="text-center text-gray-600 mb-6">
-            Your payment has been processed successfully. Redirecting to
-            confirmation page...
-          </p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card variant="default" className="max-w-md w-full">
+            <CardContent className="pt-8 pb-6 text-center">
+              <div className="text-green-500 mb-6">
+                <CheckCircleIcon className="mx-auto h-16 w-16" />
+              </div>
+              <h2 className="text-2xl font-bold mb-4">Payment Successful!</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Your payment has been processed successfully.
+              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-8">
+                Redirecting to confirmation page...
+              </p>
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary-600 dark:border-primary-400"></div>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-        <div className="bg-blue-600 px-6 py-4">
-          <h2 className="text-xl font-semibold text-white">
-            Complete Registration Payment
-          </h2>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-950 dark:to-slate-900 py-16 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl mx-auto">
+        {/* Page Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="text-center mb-10"
+        >
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gradient bg-gradient-to-r from-primary-700 to-secondary-700 dark:from-primary-400 dark:to-secondary-400 bg-clip-text text-transparent">
+            Complete Your Payment
+          </h1>
+          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Secure your spot at the Pharmair Conference by completing your
+            registration payment.
+          </p>
+        </motion.div>
 
-        <div className="p-6">
-          <div className="mb-6 pb-6 border-b border-gray-200">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              Registration Details
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-500">Name:</span>{" "}
-                {registration?.name}
-              </div>
-              <div>
-                <span className="font-medium text-gray-500">Email:</span>{" "}
-                {registration?.email}
-              </div>
-              <div>
-                <span className="font-medium text-gray-500">
-                  Registration Type:
-                </span>{" "}
-                {registration?.registrationType}
-              </div>
-              <div>
-                <span className="font-medium text-gray-500">
-                  Registration Code:
-                </span>{" "}
-                {registration?.registrationCode}
-              </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <Card variant="default" hover="none" className="overflow-hidden">
+            <div className="bg-gradient-to-r from-primary-600 to-secondary-600 dark:from-primary-800 dark:to-secondary-800 px-6 py-5">
+              <h2 className="text-xl font-semibold text-white flex items-center">
+                <CreditCardIcon className="h-5 w-5 mr-2" />
+                Payment Details
+              </h2>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              Payment Summary
-            </h3>
-            <div className="bg-gray-50 p-4 rounded-md">
-              <div className="flex justify-between mb-2">
-                <span className="text-gray-600">
-                  Registration Fee ({registration?.registrationType})
-                </span>
-                <span className="font-medium">
-                  {formatCurrency(calculateFee(registration?.registrationType))}
-                </span>
+            <CardContent className="divide-y divide-gray-200 dark:divide-gray-800">
+              <div className="pb-6 mb-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                  Registration Information
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="flex items-start">
+                    <UserCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-0.5 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Name
+                      </p>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                        {registration?.name}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <EnvelopeIcon className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-0.5 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Email
+                      </p>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                        {registration?.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <IdentificationIcon className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-0.5 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Registration Type
+                      </p>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                        {registration?.registrationType}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start">
+                    <BuildingLibraryIcon className="h-5 w-5 text-primary-600 dark:text-primary-400 mt-0.5 mr-3" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                        Registration Code
+                      </p>
+                      <p className="text-base font-medium text-gray-900 dark:text-gray-100">
+                        {registration?.registrationCode}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {registration?.needAccommodation && (
-                <div className="flex justify-between mb-2">
-                  <span className="text-gray-600">
-                    Accommodation (to be paid at venue)
-                  </span>
-                  <span className="font-medium">As per selection</span>
-                </div>
-              )}
+              <div className="pt-6 mb-6">
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">
+                  Payment Summary
+                </h3>
+                <Card
+                  variant="glass"
+                  className="bg-gradient-to-br from-gray-50/50 to-gray-100/50 dark:from-slate-900/50 dark:to-slate-800/50"
+                >
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-700 dark:text-gray-300">
+                          {registration?.registrationType} Registration Fee
+                        </span>
+                        <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                          {formatCurrency(
+                            calculateFee(registration?.registrationType)
+                          )}
+                        </span>
+                      </div>
 
-              <div className="border-t border-gray-200 pt-2 mt-2">
-                <div className="flex justify-between">
-                  <span className="font-medium text-gray-900">
-                    Total Amount
-                  </span>
-                  <span className="font-bold text-gray-900">
-                    {formatCurrency(
-                      calculateFee(registration?.registrationType)
-                    )}
-                  </span>
+                      {registration?.needAccommodation && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            Accommodation (to be paid at venue)
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            To be determined
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            Total Amount
+                          </span>
+                          <span className="text-xl font-bold text-primary-700 dark:text-primary-400">
+                            {formatCurrency(
+                              calculateFee(registration?.registrationType)
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="pt-6 flex flex-col space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+                  <Button
+                    variant="outline"
+                    size="md"
+                    onClick={() => router.back()}
+                    className="w-full sm:w-auto"
+                  >
+                    <ArrowLeftIcon className="h-4 w-4 mr-2" /> Back
+                  </Button>
+                  <PaymentButton
+                    registrationId={registrationId || ""}
+                    buttonText="Complete Payment"
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                    className="w-full sm:w-auto"
+                  />
                 </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          <div className="flex justify-end">
-            <PaymentButton
-              registrationId={registrationId || ""}
-              buttonText="Pay Now"
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-      </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="mt-8"
+        >
+          <Card
+            variant="glass"
+            className="border border-gray-200/50 dark:border-gray-800/50"
+          >
+            <CardContent className="p-5">
+              <div className="flex items-start">
+                <div className="flex-shrink-0">
+                  <ShieldCheckIcon className="h-6 w-6 text-primary-600 dark:text-primary-400" />
+                </div>
+                <div className="ml-4">
+                  <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">
+                    Secure Payment
+                  </h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Your payment information is encrypted and processed
+                    securely. We use industry-standard security measures to
+                    protect your data.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-      <div className="mt-8 bg-blue-50 border border-blue-200 rounded-md p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg
-              className="h-5 w-5 text-blue-400"
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fillRule="evenodd"
-                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-                clipRule="evenodd"
-              />
-            </svg>
+          <div className="mt-4 text-center text-sm text-gray-500 dark:text-gray-400 flex items-center justify-center">
+            <LockClosedIcon className="h-4 w-4 mr-1" />
+            <span>Secured by Razorpay Payment Gateway</span>
           </div>
-          <div className="ml-3 flex-1 md:flex md:justify-between">
-            <p className="text-sm text-blue-700">
-              Your payment is secure. We use industry-standard encryption to
-              protect your data.
-            </p>
-          </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );

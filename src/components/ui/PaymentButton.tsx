@@ -1,22 +1,50 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Button from "./Button";
+import { Button } from "./Button";
 import { useRouter } from "next/navigation";
 
 interface PaymentButtonProps {
   registrationId?: string;
   transactionId?: string;
   className?: string;
-  onSuccess?: (paymentData: any) => void;
-  onError?: (error: any) => void;
+  onSuccess?: (paymentData: RazorpaySuccessResponse) => void;
+  onError?: (error: unknown) => void;
   buttonText?: string;
   disabled?: boolean;
 }
 
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
   }
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpaySuccessResponse) => void;
+  prefill: Record<string, string>;
+  notes: Record<string, string>;
+  theme: {
+    color: string;
+  };
+  modal?: {
+    ondismiss: () => void;
+  };
+}
+
+interface RazorpaySuccessResponse {
+  razorpay_payment_id: string;
+  razorpay_order_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayInstance {
+  open: () => void;
 }
 
 const PaymentButton: React.FC<PaymentButtonProps> = ({
@@ -54,13 +82,17 @@ const PaymentButton: React.FC<PaymentButtonProps> = ({
       // Step 2: Initialize Razorpay payment
       if (typeof window !== "undefined" && window.Razorpay) {
         const options = {
-          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+          key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || "",
           amount: data.amount * 100, // Razorpay expects amount in paise
           currency: data.currency,
           name: "Pharmair Conference",
           description: "Conference Registration Payment",
           order_id: data.orderId,
-          handler: async (response: any) => {
+          handler: async (response: {
+            razorpay_payment_id: string;
+            razorpay_order_id: string;
+            razorpay_signature: string;
+          }) => {
             try {
               // Handle successful payment
               // The webhook will update the payment status in the backend

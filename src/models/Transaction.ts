@@ -1,19 +1,22 @@
-import { mongoose } from "../lib/db";
-import { Schema } from "mongoose";
+import mongoose from "mongoose";
+import { connectToDatabase } from "../lib/db";
+
+// Ensure database connection
+connectToDatabase();
 
 // Define transaction schema
-const transactionSchema = new Schema(
+const transactionSchema = new mongoose.Schema(
   {
     // User reference
     userId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Registration",
       required: true,
     },
 
     // Abstract reference (if applicable)
     abstractId: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Abstract",
     },
 
@@ -45,7 +48,7 @@ const transactionSchema = new Schema(
 
     // Complete provider response
     razorpayResponse: {
-      type: Schema.Types.Mixed,
+      type: mongoose.Schema.Types.Mixed,
     },
 
     // Receipt information
@@ -56,7 +59,7 @@ const transactionSchema = new Schema(
 
     // Additional metadata
     metadata: {
-      type: Schema.Types.Mixed,
+      type: mongoose.Schema.Types.Mixed,
     },
   },
   {
@@ -70,7 +73,7 @@ transactionSchema.index({ transactionId: 1 });
 transactionSchema.index({ razorpayOrderId: 1 });
 transactionSchema.index({ paymentStatus: 1 });
 
-// Create the model
+// Create the model - with type safety check
 const Transaction =
   mongoose.models.Transaction ||
   mongoose.model("Transaction", transactionSchema);

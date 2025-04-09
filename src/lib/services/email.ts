@@ -18,7 +18,7 @@ export async function sendEmail({
   to,
   subject,
   html,
-  from = "Pharmair Conference <noreply@pharmair-conference.com>",
+  from = "Pharmair Conference <noreply@pharmanecia.org>",
 }: {
   to: string | string[];
   subject: string;

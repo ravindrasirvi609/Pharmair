@@ -3,24 +3,17 @@ import crypto from "crypto";
 import Transaction from "../../models/Transaction";
 import Registration from "../../models/Registration";
 import { connectToDatabase } from "../db";
+import { REGISTRATION_FEES, FeeType } from "./razorpay-constants";
+
+// Re-export constants
+export { REGISTRATION_FEES };
+export type { FeeType };
 
 // Initialize Razorpay client
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "",
 });
-
-// Define registration fee structure (in INR)
-export const REGISTRATION_FEES = {
-  Student: 2500,
-  Academic: 4000,
-  Industry: 6000,
-  Speaker: 0, // Free for speakers
-  Guest: 0, // Free for special guests
-};
-
-// Fee types
-export type FeeType = "registration" | "abstract" | "accommodation";
 
 /**
  * Create a Razorpay order
@@ -40,12 +33,12 @@ export async function createOrder({
     // Amount needs to be in paise (multiply by 100)
     const amountInPaise = Math.round(amount * 100);
 
-    const order = await razorpay.orders.create({
+    const order = razorpay.orders.create({
       amount: amountInPaise,
       currency,
       receipt,
       notes,
-      payment_capture: 1, // Auto capture payment
+      payment_capture: true, // Auto capture payment
     });
 
     return order;
@@ -94,7 +87,7 @@ export async function createTransactionRecord({
   amount: number;
   description: string;
   abstractId?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }) {
   await connectToDatabase();
 
@@ -134,7 +127,7 @@ export async function updateTransactionStatus({
   razorpayPaymentId: string;
   razorpaySignature?: string;
   receiptUrl?: string;
-  razorpayResponse?: any;
+  razorpayResponse?: Record<string, unknown>;
 }) {
   await connectToDatabase();
 
