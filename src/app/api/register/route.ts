@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "../../../lib/db";
 import Registration from "../../../models/Registration";
+import Abstract from "../../../models/Abstract";
 import { sendRegistrationConfirmationEmail } from "../../../lib/services/email";
 import { generateQrCodeUrl } from "../../../lib/services/firebase";
 import {
@@ -88,34 +89,65 @@ export async function POST(request: NextRequest) {
       memberId: body.memberId,
     });
 
-    // Save the registration and get the document with the generated registration code
+    // Save the registration (no registration code generated yet)
     await registration.save();
 
-    // Generate QR code
-    const qrCodeUrl = await generateQrCodeUrl(registration.registrationCode);
-    registration.qrCodeUrl = qrCodeUrl;
-    await registration.save();
+    // Check if this user has already submitted any abstracts
+    const userAbstracts = await Abstract.find({ email: body.email });
 
-    // Create transaction record for payment if fees applicable
+    if (userAbstracts && userAbstracts.length > 0) {
+      // User has submitted abstracts, link them to this registration
+      registration.hasSubmittedAbstract = true;
+      registration.abstracts = userAbstracts.map((abstract) => abstract._id);
+      await registration.save();
+
+      // Update each abstract to link to this registration
+      for (const abstract of userAbstracts) {
+        abstract.registration = registration._id;
+        abstract.registrationStatus = "Pending"; // Registration pending until payment
+        await abstract.save();
+      }
+    }
+
+    // Create transaction record for payment
     const registrationFee =
       REGISTRATION_FEES[
         registration.registrationType as keyof typeof REGISTRATION_FEES
       ] || 0;
 
+    let transactionRecord;
     if (registrationFee > 0) {
       // Create transaction record
-      await createTransactionRecord({
+      transactionRecord = await createTransactionRecord({
         userId: registration._id.toString(),
         amount: registrationFee,
         description: `Registration Fee for ${registration.registrationType} - ${registration.name}`,
         metadata: {
           registrationType: registration.registrationType,
-          registrationCode: registration.registrationCode,
         },
       });
     } else {
-      // If no fees, mark as already paid
+      // If no fees required (e.g., for Guest or Speaker), mark as already paid
       registration.paymentStatus = "Completed";
+      await registration.save();
+
+      // This will trigger the pre-save hook to generate registration code
+      // and update registration status to "Confirmed"
+      await registration.save();
+
+      // Update linked abstracts
+      if (userAbstracts && userAbstracts.length > 0) {
+        for (const abstract of userAbstracts) {
+          abstract.registrationCompleted = true;
+          abstract.paymentCompleted = true;
+          abstract.registrationStatus = "Confirmed";
+          await abstract.save();
+        }
+      }
+
+      // Generate QR code only after registration is confirmed
+      const qrCodeUrl = await generateQrCodeUrl(registration.registrationCode);
+      registration.qrCodeUrl = qrCodeUrl;
       await registration.save();
     }
 
@@ -123,13 +155,17 @@ export async function POST(request: NextRequest) {
     await sendRegistrationConfirmationEmail({
       to: registration.email,
       name: registration.name,
-      registrationCode: registration.registrationCode,
+      registrationCode:
+        registration.registrationCode || "Pending payment confirmation",
     });
 
     // Return success response
     return NextResponse.json({
       success: true,
-      message: "Registration successful",
+      message:
+        registrationFee > 0
+          ? "Registration initiated. Please complete payment to confirm registration."
+          : "Registration successful",
       data: {
         registrationId: registration._id,
         registrationCode: registration.registrationCode,
@@ -137,8 +173,10 @@ export async function POST(request: NextRequest) {
         email: registration.email,
         registrationType: registration.registrationType,
         paymentStatus: registration.paymentStatus,
+        registrationStatus: registration.registrationStatus,
         paymentRequired: registrationFee > 0,
         paymentAmount: registrationFee,
+        transactionId: transactionRecord?.transactionId,
       },
     });
   } catch (error: unknown) {
@@ -180,7 +218,8 @@ export async function GET(request: NextRequest) {
     else if (registrationCode) query.registrationCode = registrationCode;
 
     // Find registration
-    const registration = await Registration.findOne(query);
+    const registration =
+      await Registration.findOne(query).populate("abstracts");
 
     if (!registration) {
       return NextResponse.json(

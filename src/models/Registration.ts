@@ -43,7 +43,7 @@ const registrationSchema = new mongoose.Schema(
       enum: ["Pending", "Confirmed", "Cancelled"],
       default: "Pending",
     },
-    registrationCode: { type: String, unique: true },
+    registrationCode: { type: String, unique: true, sparse: true },
     needAccommodation: { type: Boolean, default: false },
     memberId: { type: String },
     qrCodeUrl: { type: String },
@@ -65,6 +65,7 @@ const registrationSchema = new mongoose.Schema(
 
     // Reference to abstract submissions
     abstracts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Abstract" }],
+    hasSubmittedAbstract: { type: Boolean, default: false },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
@@ -74,13 +75,17 @@ const registrationSchema = new mongoose.Schema(
 // Create a compound index for efficient lookups
 registrationSchema.index({ email: 1, registrationCode: 1 });
 
-// Generate a unique registration code before saving
-registrationSchema.pre("save", function (next) {
-  if (!this.registrationCode) {
-    // Generate registration code: CONF-YEAR-RANDOM
+// Generate a unique registration code only after payment is completed
+registrationSchema.pre("save", async function (next) {
+  // Only generate registration code if payment is completed and code doesn't exist yet
+  if (this.paymentStatus === "Completed" && !this.registrationCode) {
+    // Generate registration code: PHAR-YEAR-RANDOM
     const year = new Date().getFullYear();
     const random = Math.floor(10000 + Math.random() * 90000); // 5-digit random number
     this.registrationCode = `PHAR-${year}-${random}`;
+
+    // Also update registration status to Confirmed
+    this.registrationStatus = "Confirmed";
   }
   next();
 });

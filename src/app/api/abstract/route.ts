@@ -73,24 +73,38 @@ export async function POST(request: NextRequest) {
     const qrCodeUrl = await generateQrCodeUrl(abstract.abstractCode);
     abstract.qrCodeUrl = qrCodeUrl;
 
-    await abstract.save();
-
     // Check if user is already registered
     const registration = await Registration.findOne({ email: data.email });
 
     if (registration) {
       // Link abstract to registration
       abstract.registration = registration._id;
-      abstract.registrationCompleted = true;
-      await abstract.save();
 
-      // Add abstract to registration
+      // Set registration status based on the registration's payment status
+      if (registration.paymentStatus === "Completed") {
+        abstract.registrationCompleted = true;
+        abstract.paymentCompleted = true;
+        abstract.registrationStatus = "Confirmed";
+      } else {
+        abstract.registrationStatus = "Pending";
+        abstract.registrationCompleted = false;
+        abstract.paymentCompleted = false;
+      }
+
+      // Update the registration to indicate that user has submitted an abstract
+      registration.hasSubmittedAbstract = true;
       registration.abstracts = [
         ...(registration.abstracts || []),
         abstract._id,
       ];
       await registration.save();
+    } else {
+      // No registration found - set status to not registered
+      abstract.registrationStatus = "NotRegistered";
     }
+
+    // Save the abstract after all updates
+    await abstract.save();
 
     // Send confirmation email
     await sendAbstractSubmissionEmail({
@@ -100,7 +114,7 @@ export async function POST(request: NextRequest) {
       abstractTitle: abstract.title,
     });
 
-    // Return success response
+    // Return success response with detailed status
     return NextResponse.json({
       success: true,
       message: "Abstract submission successful",
@@ -109,7 +123,10 @@ export async function POST(request: NextRequest) {
         abstractCode: abstract.abstractCode,
         title: abstract.title,
         email: abstract.email,
+        registrationStatus: abstract.registrationStatus,
         registrationCompleted: abstract.registrationCompleted,
+        paymentCompleted: abstract.paymentCompleted,
+        registrationExists: !!registration,
       },
     });
   } catch (error: unknown) {
@@ -123,13 +140,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Define a type for query parameters
-interface AbstractQuery {
-  _id?: string;
-  abstractCode?: string;
-  email?: string;
-}
-
 // GET endpoint to fetch abstract details by ID, email, or code
 export async function GET(request: NextRequest) {
   try {
@@ -137,12 +147,20 @@ export async function GET(request: NextRequest) {
     const abstractId = searchParams.get("id");
     const email = searchParams.get("email");
     const abstractCode = searchParams.get("code");
+    const registrationStatus = searchParams.get("registrationStatus");
+    const paymentStatus = searchParams.get("paymentStatus");
 
-    if (!abstractId && !email && !abstractCode) {
+    if (
+      !abstractId &&
+      !email &&
+      !abstractCode &&
+      !registrationStatus &&
+      !paymentStatus
+    ) {
       return NextResponse.json(
         {
           success: false,
-          message: "Either id, email, or code parameter is required",
+          message: "At least one search parameter is required",
         },
         { status: 400 }
       );
@@ -151,18 +169,41 @@ export async function GET(request: NextRequest) {
     // Connect to database
     await connectToDatabase();
 
+    // Build query based on provided parameters
+    interface AbstractQuery {
+      _id?: string;
+      abstractCode?: string;
+      email?: string;
+      registrationStatus?: string;
+      paymentCompleted?: boolean;
+    }
+
     const query: AbstractQuery = {};
     if (abstractId) query._id = abstractId;
     else if (abstractCode) query.abstractCode = abstractCode;
     else if (email) query.email = email;
+    if (registrationStatus) query.registrationStatus = registrationStatus;
+    if (paymentStatus) {
+      if (paymentStatus === "true" || paymentStatus === "1") {
+        query.paymentCompleted = true;
+      } else if (paymentStatus === "false" || paymentStatus === "0") {
+        query.paymentCompleted = false;
+      }
+    }
 
-    // Handle multiple abstracts for email query
-    if (email && !abstractId && !abstractCode) {
-      const abstracts = await Abstract.find({ email }).sort({ createdAt: -1 });
+    // Handle multiple abstracts for email query or status filters
+    if (
+      (email && !abstractId && !abstractCode) ||
+      registrationStatus ||
+      paymentStatus
+    ) {
+      const abstracts = await Abstract.find(query)
+        .populate("registration")
+        .sort({ createdAt: -1 });
 
       if (!abstracts || abstracts.length === 0) {
         return NextResponse.json(
-          { success: false, message: "No abstracts found for this email" },
+          { success: false, message: "No abstracts found matching criteria" },
           { status: 404 }
         );
       }
@@ -170,10 +211,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({
         success: true,
         data: abstracts,
+        count: abstracts.length,
       });
     } else {
       // Single abstract lookup
-      const abstract = await Abstract.findOne(query);
+      const abstract = await Abstract.findOne(query).populate("registration");
 
       if (!abstract) {
         return NextResponse.json(

@@ -55,9 +55,17 @@ const abstractSchema = new mongoose.Schema(
     abstractCode: { type: String, unique: true },
     qrCodeUrl: { type: String },
     registrationCompleted: { type: Boolean, default: false },
+    paymentCompleted: { type: Boolean, default: false },
 
     // References
     registration: { type: mongoose.Schema.Types.ObjectId, ref: "Registration" },
+
+    // Registration status - helps to track if this abstract's author has registered
+    registrationStatus: {
+      type: String,
+      enum: ["NotRegistered", "Pending", "Confirmed"],
+      default: "NotRegistered",
+    },
   },
   {
     timestamps: true, // Adds createdAt and updatedAt
@@ -67,6 +75,7 @@ const abstractSchema = new mongoose.Schema(
 // Create indexes for faster queries
 abstractSchema.index({ email: 1, abstractCode: 1 });
 abstractSchema.index({ status: 1 });
+abstractSchema.index({ registrationStatus: 1 });
 
 // Generate abstract code before saving if not already present
 abstractSchema.pre("save", function (next) {
