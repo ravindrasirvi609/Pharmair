@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import Image from "next/image";
+import { Tooltip } from "react-tooltip";
 
 // Define types
 interface Abstract {
@@ -38,34 +39,38 @@ interface Registration {
   registrationStatus: string;
 }
 
-const fadeIn = {
-  initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: 20 }
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0 },
 };
 
 export default function ProfilePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-5xl mx-auto">
-        <motion.h1 
-          className="text-4xl md:text-5xl font-bold text-center bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent dark:from-primary-400 dark:to-secondary-400 mb-2"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-        >
+    <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800 py-12 px-4 sm:px-6 lg:px-8">
+      <motion.div
+        className="max-w-5xl mx-auto"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-900 dark:text-white mb-2">
           Your Profile
-        </motion.h1>
-        <motion.p 
-          className="text-center text-gray-600 dark:text-gray-400 mb-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          View and manage your submission and registration details
-        </motion.p>
+        </h1>
+        <p className="text-center text-gray-600 dark:text-gray-300 mb-8 max-w-lg mx-auto">
+          View and manage your abstract submissions and registration details
+        </p>
         <ProfileContent />
-      </div>
+      </motion.div>
     </div>
   );
 }
@@ -81,7 +86,6 @@ function ProfileContent() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [activeTab, setActiveTab] = useState<'abstract' | 'registration'>(abstract ? 'abstract' : 'registration');
 
   // Get abstract code or email from URL parameters
   const abstractCode = searchParams.get("abstractCode");
@@ -108,7 +112,6 @@ function ProfileContent() {
           );
           if (abstractResponse.data.success) {
             setAbstract(abstractResponse.data.data);
-            setActiveTab('abstract');
 
             // If abstract has a linked registration, fetch that too
             if (abstractResponse.data.data.registration) {
@@ -137,7 +140,6 @@ function ProfileContent() {
                 ? abstractResponse.data.data[0]
                 : abstractResponse.data.data
             );
-            setActiveTab('abstract');
 
             // Try to fetch registration with the same email
             try {
@@ -159,7 +161,6 @@ function ProfileContent() {
           );
           if (regResponse.data.success) {
             setRegistration(regResponse.data.data);
-            setActiveTab('registration');
 
             // If registration has abstracts, fetch the first one
             if (
@@ -271,81 +272,60 @@ function ProfileContent() {
     }
   };
 
-  // Helper function to render status badge with appropriate colors
-  const renderStatusBadge = (status: string, type: 'abstract' | 'registration') => {
-    const getStatusConfig = () => {
-      if (type === 'abstract') {
-        switch(status) {
-          case 'Accepted':
-            return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', icon: '✓' };
-          case 'Rejected':
-            return { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-800 dark:text-red-400', icon: '✕' };
-          case 'Revisions':
-            return { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-400', icon: '✎' };
-          case 'InReview':
-            return { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-400', icon: '⌛' };
-          default:
-            return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-400', icon: 'i' };
-        }
-      } else {
-        switch(status) {
-          case 'Confirmed':
-            return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', icon: '✓' };
-          case 'Completed':
-            return { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-800 dark:text-green-400', icon: '✓' };
-          case 'Pending':
-            return { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-800 dark:text-yellow-400', icon: '⌛' };
-          default:
-            return { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-400', icon: 'i' };
-        }
-      }
-    };
-    
-    const { bg, text, icon } = getStatusConfig();
-    const displayStatus = status === 'Revisions' ? 'Revisions Required' : status;
-    
-    return (
-      <span className={`px-3 py-1 text-sm font-semibold rounded-full inline-flex items-center gap-1.5 ${bg} ${text}`}>
-        <span className="w-4 h-4 inline-flex items-center justify-center rounded-full bg-current text-white text-xs">
-          {icon}
-        </span>
-        {displayStatus}
-      </span>
-    );
-  };
-
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary-600 mb-4"></div>
-        <p className="text-gray-600 dark:text-gray-400 animate-pulse">Loading your profile...</p>
+      <div className="flex flex-col justify-center items-center min-h-[60vh] space-y-4">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-primary-600"></div>
+        <p className="text-gray-600 dark:text-gray-300 animate-pulse">
+          Loading your profile...
+        </p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <motion.div 
-        className="bg-red-50 dark:bg-red-900/20 p-8 rounded-xl shadow-md border border-red-100 dark:border-red-900/50"
-        {...fadeIn}
+      <motion.div
+        className="bg-red-50 dark:bg-red-900/20 p-8 rounded-xl shadow-md border border-red-200 dark:border-red-700"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="flex items-center mb-4 text-red-600 dark:text-red-400">
-          <svg className="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"></path>
-          </svg>
-          <h2 className="text-2xl font-bold">Error</h2>
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="bg-red-100 dark:bg-red-800 p-2 rounded-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-red-600 dark:text-red-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-red-700 dark:text-red-400">
+            Error
+          </h2>
         </div>
         <p className="text-red-600 dark:text-red-300 mb-6">{error}</p>
-        <div className="mt-6">
+        <div className="mt-6 flex justify-between">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white py-2.5 px-5 rounded-md transition-colors shadow-md hover:shadow-lg"
+            className="inline-block bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-2 px-4 rounded-md transition-colors"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
             Return to Home
           </Link>
+          <button
+            onClick={() => setError(null)}
+            className="inline-block bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-md transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </motion.div>
     );
@@ -354,29 +334,43 @@ function ProfileContent() {
   // No data found
   if (!abstract && !registration) {
     return (
-      <motion.div 
-        className="bg-yellow-50 dark:bg-yellow-900/20 p-8 rounded-xl shadow-md border border-yellow-100 dark:border-yellow-900/50"
-        {...fadeIn}
+      <motion.div
+        className="bg-yellow-50 dark:bg-yellow-900/20 p-8 rounded-xl shadow-md border border-yellow-200 dark:border-yellow-700"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="flex items-center mb-4 text-yellow-600 dark:text-yellow-400">
-          <svg className="w-8 h-8 mr-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
-          </svg>
-          <h2 className="text-2xl font-bold">No information found</h2>
+        <div className="flex items-center space-x-3 mb-4">
+          <div className="bg-yellow-100 dark:bg-yellow-800 p-2 rounded-full">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-yellow-600 dark:text-yellow-300"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-semibold text-yellow-700 dark:text-yellow-400">
+            No information found
+          </h2>
         </div>
         <p className="text-gray-700 dark:text-gray-300 mb-6">
           We couldn&apos;t find any information with the provided details. If
           you&apos;ve registered or submitted an abstract, please make sure
           you&apos;re using the correct email or code.
         </p>
-        <div className="mt-6">
+        <div className="mt-6 flex justify-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-secondary-600 hover:from-primary-700 hover:to-secondary-700 text-white py-2.5 px-5 rounded-md transition-colors shadow-md hover:shadow-lg"
+            className="inline-block bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-md transition-colors shadow-md"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-            </svg>
             Return to Home
           </Link>
         </div>
@@ -385,416 +379,621 @@ function ProfileContent() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Profile summary card */}
-      <motion.div 
-        className="bg-white dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700/50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">
-              Welcome, {registration?.name || abstract?.name || 'Attendee'}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              {registration?.email || abstract?.email || ''}
-            </p>
-          </div>
-          
-          {/* Quick Info */}
-          <div className="flex flex-wrap gap-3">
-            {registration && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm">
-                <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"></path>
-                </svg>
-                <span className="font-medium text-blue-700 dark:text-blue-400">
-                  Registration: {registration.registrationType}
-                </span>
-              </div>
-            )}
-            
-            {abstract && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 rounded-lg text-sm">
-                <svg className="w-5 h-5 text-purple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c-1.255 0-2.443.29-3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
-                </svg>
-                <span className="font-medium text-purple-700 dark:text-purple-400">
-                  Abstract: {abstract.articleType}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </motion.div>
-      
-      {/* Tabs for navigation between abstract and registration */}
-      {abstract && registration && (
-        <div className="flex border-b border-gray-200 dark:border-gray-700">
-          <button
-            onClick={() => setActiveTab('abstract')}
-            className={`py-3 px-6 font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === 'abstract' 
-                ? 'border-primary-600 dark:border-primary-400 text-primary-600 dark:text-primary-400' 
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            Abstract Details
-          </button>
-          <button
-            onClick={() => setActiveTab('registration')}
-            className={`py-3 px-6 font-medium border-b-2 transition-colors -mb-px ${
-              activeTab === 'registration' 
-                ? 'border-secondary-600 dark:border-secondary-400 text-secondary-600 dark:text-secondary-400' 
-                : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-            }`}
-          >
-            Registration Details
-          </button>
-        </div>
-      )}
-
+    <motion.div
+      className="space-y-8"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Registration Details */}
-      {registration && (activeTab === 'registration' || !abstract) && (
+      {registration && (
         <motion.div
-          key="registration"
-          {...fadeIn}
-          transition={{ duration: 0.4 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700"
+          variants={itemVariants}
+          className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow"
         >
-          <div className="flex items-center mb-6">
-            <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900/30 mr-4">
-              <svg className="w-8 h-8 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd"></path>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-full">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-blue-600 dark:text-blue-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-semibold text-blue-600 dark:text-blue-400">
               Registration Details
             </h2>
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Name</p>
-                <p className="text-lg font-medium text-gray-800 dark:text-gray-200">{registration.name}</p>
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Email</p>
-                <p className="text-lg break-all text-gray-800 dark:text-gray-200">{registration.email}</p>
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Registration Type</p>
-                <p className="text-lg text-gray-800 dark:text-gray-200">{registration.registrationType}</p>
-              </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Name
+              </p>
+              <p className="text-lg font-medium">{registration.name}</p>
             </div>
-            
-            <div className="space-y-6">
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Registration Code</p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-lg font-medium text-blue-600 dark:text-blue-400 tracking-wider">
-                    {registration.registrationCode || "Pending"}
-                  </p>
-                  {registration.registrationCode && (
-                    <button 
-                      onClick={() => navigator.clipboard.writeText(registration.registrationCode)}
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1.5"
-                      title="Copy code"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
-                      </svg>
-                    </button>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Payment Status</p>
-                <div className="mt-1">
-                  {renderStatusBadge(registration.paymentStatus, 'registration')}
-                </div>
-              </div>
-              
-              <div className="bg-blue-50 dark:bg-blue-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Registration Status</p>
-                <div className="mt-1">
-                  {renderStatusBadge(registration.registrationStatus, 'registration')}
-                </div>
-                
-                {registration.paymentStatus !== 'Completed' && (
-                  <Button
-                    variant="gradient"
-                    size="md"
-                    animate
-                    className="mt-3 w-full"
-                    onClick={() => window.location.href = `/payment?regCode=${registration.registrationCode}`}
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Email
+              </p>
+              <p className="text-lg break-words">{registration.email}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Registration Code
+              </p>
+              <p className="text-lg font-medium text-blue-600 dark:text-blue-400 flex items-center">
+                {registration.registrationCode || "Pending"}
+                <button
+                  className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      registration.registrationCode
+                    );
+                    alert("Registration code copied to clipboard!");
+                  }}
+                  data-tooltip-id="copy-tooltip"
+                  data-tooltip-content="Copy to clipboard"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    Complete Payment
-                  </Button>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Registration Type
+              </p>
+              <p className="text-lg">{registration.registrationType}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Payment Status
+              </p>
+              <span
+                className={`px-3 py-1 text-sm font-semibold rounded-full inline-flex items-center ${
+                  registration.paymentStatus === "Completed"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                }`}
+              >
+                {registration.paymentStatus === "Completed" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
                 )}
-              </div>
+                {registration.paymentStatus === "Pending" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                )}
+                {registration.paymentStatus}
+              </span>
+
+              {registration.paymentStatus === "Pending" && (
+                <div className="mt-3">
+                  <Link
+                    href="/payment"
+                    className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 inline-flex items-center"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-4 w-4 mr-1"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                      />
+                    </svg>
+                    Complete Payment
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
       )}
 
       {/* Abstract Details */}
-      {abstract && (activeTab === 'abstract' || !registration) && (
+      {abstract && (
         <motion.div
-          key="abstract"
-          {...fadeIn}
-          transition={{ duration: 0.4 }}
-          className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md border border-gray-100 dark:border-gray-700"
+          variants={itemVariants}
+          className="bg-white dark:bg-gray-800 p-8 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 hover:shadow-lg transition-shadow"
         >
-          <div className="flex items-center mb-6">
-            <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900/30 mr-4">
-              <svg className="w-8 h-8 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c-1.255 0-2.443.29-3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"></path>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-full">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-purple-600 dark:text-purple-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-semibold text-purple-600 dark:text-purple-400">
               Abstract Details
             </h2>
           </div>
-          
-          <div className="grid md:grid-cols-2 gap-8">
-            <div className="space-y-6 md:col-span-2">
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Title</p>
-                <p className="text-xl font-medium text-gray-800 dark:text-gray-200">{abstract.title}</p>
-              </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div className="md:col-span-2 bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Title
+              </p>
+              <p className="text-lg font-medium">{abstract.title}</p>
             </div>
-            
-            <div className="space-y-6">
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Author</p>
-                <p className="text-lg text-gray-800 dark:text-gray-200">{abstract.name}</p>
-              </div>
-              
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Abstract Code</p>
-                <div className="flex items-center space-x-2">
-                  <p className="text-lg font-medium text-purple-600 dark:text-purple-400 tracking-wider">
-                    {abstract.abstractCode}
-                  </p>
-                  <button 
-                    onClick={() => navigator.clipboard.writeText(abstract.abstractCode)}
-                    className="text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 p-1.5"
-                    title="Copy code"
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Author
+              </p>
+              <p className="text-lg">{abstract.name}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Abstract Code
+              </p>
+              <p className="text-lg font-medium text-purple-600 dark:text-purple-400 flex items-center">
+                {abstract.abstractCode}
+                <button
+                  className="ml-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  onClick={() => {
+                    navigator.clipboard.writeText(abstract.abstractCode);
+                    alert("Abstract code copied to clipboard!");
+                  }}
+                  data-tooltip-id="copy-tooltip"
+                  data-tooltip-content="Copy to clipboard"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-              
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Article Type</p>
-                <p className="text-lg text-gray-800 dark:text-gray-200">{abstract.articleType}</p>
-              </div>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </button>
+              </p>
             </div>
-            
-            <div className="space-y-6">
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Presentation Type</p>
-                <p className="text-lg text-gray-800 dark:text-gray-200">{abstract.presentationType}</p>
-              </div>
-              
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                <div className="mt-1">
-                  {renderStatusBadge(abstract.status, 'abstract')}
-                </div>
-              </div>
-              
-              <div className="bg-purple-50 dark:bg-purple-900/20 p-5 rounded-lg">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Submitted On</p>
-                <p className="text-lg text-gray-800 dark:text-gray-200">
-                  {new Date(abstract.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric', 
-                    month: 'long', 
-                    day: 'numeric'
-                  })}
-                </p>
-              </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Article Type
+              </p>
+              <p className="text-lg">{abstract.articleType}</p>
             </div>
-            
-            <div className="md:col-span-2 flex flex-col md:flex-row justify-between gap-6">
-              <div className="flex-1">
-                {/* Abstract Document */}
-                {abstract.abstractFileUrl && (
-                  <a
-                    href={abstract.abstractFileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-5 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-800 hover:bg-purple-50 dark:hover:bg-purple-800/30 transition-colors shadow-sm hover:shadow"
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Presentation Type
+              </p>
+              <p className="text-lg">{abstract.presentationType}</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Status
+              </p>
+              <span
+                className={`px-3 py-1 text-sm font-semibold rounded-full inline-flex items-center ${
+                  abstract.status === "Accepted"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : abstract.status === "Rejected"
+                      ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                      : abstract.status === "Revisions"
+                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400"
+                        : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                }`}
+              >
+                {abstract.status === "Accepted" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    <div className="bg-purple-100 dark:bg-purple-700 p-2.5 rounded-lg">
-                      <svg className="w-8 h-8 text-purple-600 dark:text-purple-300" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd"></path>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-gray-100">Abstract Document</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Click to view your submitted abstract</p>
-                    </div>
-                  </a>
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
                 )}
-              </div>
-              
-              <div className="flex-1">
-                {/* QR Code if available */}
-                {abstract.qrCodeUrl && (
-                  <div className="flex items-center gap-3 p-5 bg-white dark:bg-gray-700 rounded-lg border border-purple-200 dark:border-purple-800 shadow-sm text-center">
-                    <div className="w-full">
-                      <p className="font-medium text-gray-900 dark:text-gray-100 mb-3">Abstract QR Code</p>
-                      <div className="inline-block bg-white p-2 rounded-md mx-auto">
-                        <Image
-                          src={abstract.qrCodeUrl}
-                          alt="Abstract QR Code"
-                          width={150}
-                          height={150}
-                          className="mx-auto"
-                        />
-                      </div>
-                    </div>
-                  </div>
+                {abstract.status === "Rejected" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
                 )}
-              </div>
+                {abstract.status === "Revisions" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                  </svg>
+                )}
+                {abstract.status === "InReview" && (
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-4 w-4 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                )}
+                {abstract.status === "Revisions"
+                  ? "Revisions Required"
+                  : abstract.status}
+              </span>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+                Submitted On
+              </p>
+              <p className="text-lg">
+                {new Date(abstract.createdAt).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </p>
+            </div>
+            <div className="md:col-span-2 mt-2">
+              <a
+                href={abstract.abstractFileUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 rounded-md bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5 mr-2"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  ></path>
+                </svg>
+                View Abstract Document
+              </a>
             </div>
           </div>
 
           {/* Reviewer Comments */}
           {abstract.rejectionComment && (
-            <div className="mt-8 p-5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-900/50">
-              <h3 className="text-lg font-semibold text-yellow-800 dark:text-yellow-400 flex items-center gap-2 mb-3">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"></path>
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mt-6 p-5 bg-gray-50 dark:bg-gray-700/50 rounded-lg border border-gray-200 dark:border-gray-600"
+            >
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"
+                  />
                 </svg>
                 Reviewer Comments
               </h3>
-              <div className="bg-white dark:bg-gray-700/50 p-4 rounded-md shadow-sm">
-                <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line">
-                  {abstract.rejectionComment}
+              <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line bg-white dark:bg-gray-800 p-4 rounded-md border border-gray-200 dark:border-gray-700">
+                {abstract.rejectionComment}
+              </p>
+            </motion.div>
+          )}
+
+          {/* QR Code */}
+          {abstract.qrCodeUrl && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-8 flex flex-col items-center"
+            >
+              <h3 className="text-lg font-semibold mb-3 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2 text-gray-600 dark:text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"
+                  />
+                </svg>
+                Abstract QR Code
+              </h3>
+              <div className="bg-white p-3 rounded-md shadow-md">
+                <div className="relative">
+                  <Image
+                    src={abstract.qrCodeUrl}
+                    alt="Abstract QR Code"
+                    width={150}
+                    height={150}
+                    className="mx-auto"
+                  />
+                  <div className="absolute inset-0 hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity rounded">
+                    <a
+                      href={abstract.qrCodeUrl}
+                      download={`abstract-qr-${abstract.abstractCode}.png`}
+                      className="bg-white/80 dark:bg-black/80 p-2 rounded-full"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5 text-gray-800 dark:text-gray-200"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4-4m0 0L8 8m4-4v12"
+                        />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
+                <p className="text-xs text-center mt-2 text-gray-500 dark:text-gray-400">
+                  Hover to download
                 </p>
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Submit Revision Form */}
           {abstract.status === "Revisions" && (
-            <motion.div 
-              className="mt-8 p-6 border border-purple-200 dark:border-purple-800 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 shadow-md"
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              className="mt-8 p-6 border border-purple-200 dark:border-purple-800 rounded-lg bg-purple-50 dark:bg-purple-900/10"
             >
-              <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 flex items-center gap-2 mb-3">
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"></path>
+              <h3 className="text-xl font-semibold text-purple-600 dark:text-purple-400 mb-3 flex items-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"
+                  />
                 </svg>
                 Submit Revised Abstract
               </h3>
-              <p className="mb-6 text-gray-700 dark:text-gray-300">
-                Please upload your revised abstract based on the reviewer comments. Make sure to address all the feedback provided.
+              <p className="mb-4 text-gray-700 dark:text-gray-300">
+                Please upload your revised abstract based on the reviewer
+                comments above.
               </p>
 
-              <form onSubmit={handleSubmitRevision}>
-                <div className="mb-6">
+              <form onSubmit={handleSubmitRevision} className="space-y-4">
+                <div className="relative">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Upload Revised Abstract
                   </label>
-                  <div className="flex items-center justify-center w-full">
-                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer ${
-                      selectedFile ? 'border-purple-300 bg-purple-50 dark:border-purple-600 dark:bg-purple-900/20' : 
-                      'border-gray-300 hover:border-purple-300 dark:border-gray-600 dark:hover:border-purple-600'
-                    } transition-colors ${uploadingRevision ? 'opacity-60' : ''}`}>
-                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                        {selectedFile ? (
-                          <>
-                            <svg className="w-10 h-10 text-purple-500 mb-3" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                              <path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd"></path>
-                            </svg>
-                            <p className="mb-1 text-sm text-purple-600 dark:text-purple-400 font-medium">
+                  <div
+                    className={`border-2 border-dashed rounded-lg p-6 
+                    ${
+                      selectedFile
+                        ? "border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-900/10"
+                        : "border-gray-300 dark:border-gray-600 hover:border-purple-400 dark:hover:border-purple-500"
+                    } 
+                    transition-colors text-center`}
+                  >
+                    <input
+                      type="file"
+                      onChange={handleFileChange}
+                      accept=".pdf,.doc,.docx"
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      disabled={uploadingRevision}
+                    />
+                    <div className="space-y-2">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="mx-auto h-10 w-10 text-gray-400 dark:text-gray-500"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                        />
+                      </svg>
+                      {selectedFile ? (
+                        <>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            Selected file:{" "}
+                            <span className="font-medium">
                               {selectedFile.name}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-10 h-10 text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                            <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
-                              <span className="font-semibold">Click to upload</span> or drag and drop
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              PDF or DOC files (MAX. 10MB)
-                            </p>
-                          </>
-                        )}
-                      </div>
-                      <input 
-                        type="file" 
-                        className="hidden" 
-                        onChange={handleFileChange}
-                        accept=".pdf,.doc,.docx" 
-                        disabled={uploadingRevision}
-                      />
-                    </label>
+                            </span>
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm text-gray-700 dark:text-gray-300">
+                            <span className="font-medium">Click to upload</span>{" "}
+                            or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            PDF, DOC or DOCX (max. 10MB)
+                          </p>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
 
                 {uploadingRevision && (
-                  <div className="mb-6">
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Uploading...
+                      </span>
+                      <span className="text-purple-600 dark:text-purple-400 font-medium">
+                        {uploadProgress}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                       <div
-                        className="bg-gradient-to-r from-purple-500 to-blue-500 h-3 rounded-full transition-all duration-300"
+                        className="bg-purple-600 h-2 rounded-full transition-all duration-300 ease-out"
                         style={{ width: `${uploadProgress}%` }}
                       ></div>
                     </div>
-                    <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 flex justify-between">
-                      <span>Uploading your revised abstract...</span>
-                      <span className="font-medium">{uploadProgress}%</span>
-                    </p>
                   </div>
                 )}
 
                 {uploadSuccess && (
-                  <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-900/40 flex items-center">
-                    <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path>
+                  <div className="p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-md border border-green-200 dark:border-green-800 flex">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 mr-2 flex-shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
-                    Your revised abstract has been submitted successfully and is now under review.
+                    <span>
+                      Your revised abstract has been submitted successfully and
+                      is now under review.
+                    </span>
                   </div>
                 )}
 
                 <Button
-                  variant="gradient"
-                  size="lg"
                   type="submit"
                   disabled={!selectedFile || uploadingRevision}
-                  isLoading={uploadingRevision}
-                  className="w-full"
-                  animate
+                  className={`w-full ${
+                    !selectedFile || uploadingRevision
+                      ? "opacity-70 cursor-not-allowed"
+                      : ""
+                  }`}
                 >
-                  {uploadingRevision ? "Uploading..." : "Submit Revised Abstract"}
+                  {uploadingRevision
+                    ? "Uploading..."
+                    : "Submit Revised Abstract"}
                 </Button>
               </form>
             </motion.div>
           )}
         </motion.div>
       )}
-    </div>
+
+      {/* Tooltips */}
+      <Tooltip id="copy-tooltip" />
+    </motion.div>
   );
 }
