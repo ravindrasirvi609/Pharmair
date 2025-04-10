@@ -3,13 +3,10 @@ import { connectToDatabase } from "../../../lib/db";
 import Abstract from "../../../models/Abstract";
 import Registration from "../../../models/Registration";
 import { sendAbstractSubmissionEmail } from "../../../lib/services/email";
-import {
-  generateQrCodeUrl,
-  uploadAbstractFile,
-} from "../../../lib/services/firebase";
+import { generateQrCodeUrl } from "../../../lib/services/firebase";
 
 // Define a type for the supported form values
-interface FormData {
+interface AbstractSubmissionData {
   email: string;
   name: string;
   affiliation: string;
@@ -18,6 +15,8 @@ interface FormData {
   subject: string;
   articleType: string;
   presentationType: string;
+  abstractFileUrl: string;
+  abstractFilePath?: string;
   coAuthors?: Array<{
     name: string;
     email: string;
@@ -26,37 +25,10 @@ interface FormData {
   [key: string]: string | Array<Record<string, string>> | undefined;
 }
 
-// Helper to parse and validate multipart form data
-async function parseMultipartFormData(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File;
-
-  // Convert form data to plain object
-  const data: FormData = {} as FormData;
-  formData.forEach((value, key) => {
-    if (key !== "file") {
-      // Handle co-authors as JSON string
-      if (key === "coAuthors") {
-        try {
-          data[key] = JSON.parse(value as string);
-        } catch (error) {
-          // Intentionally ignoring parse error and using empty array as fallback
-          console.debug("Failed to parse coAuthors JSON:", error);
-          data[key] = [];
-        }
-      } else {
-        data[key] = value as string;
-      }
-    }
-  });
-
-  return { data, file };
-}
-
 export async function POST(request: NextRequest) {
   try {
-    // Parse multipart form data
-    const { data, file } = await parseMultipartFormData(request);
+    // Parse JSON data from request
+    const data: AbstractSubmissionData = await request.json();
 
     // Validate required fields
     const requiredFields = [
@@ -68,6 +40,7 @@ export async function POST(request: NextRequest) {
       "subject",
       "articleType",
       "presentationType",
+      "abstractFileUrl",
     ];
 
     for (const field of requiredFields) {
@@ -77,31 +50,6 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         );
       }
-    }
-
-    // Validate file
-    if (!file) {
-      return NextResponse.json(
-        { success: false, message: "Abstract file is required" },
-        { status: 400 }
-      );
-    }
-
-    // Validate file type
-    const allowedTypes = [
-      "application/pdf",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
-
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Invalid file type. Only PDF and Word documents are allowed",
-        },
-        { status: 400 }
-      );
     }
 
     // Connect to database
@@ -118,25 +66,8 @@ export async function POST(request: NextRequest) {
       subject: data.subject,
       articleType: data.articleType,
       presentationType: data.presentationType,
-      // We'll update the file URL after upload
+      abstractFileUrl: data.abstractFileUrl, // Use the URL provided by the client
     });
-
-    // Create temporary code for the file upload
-    await abstract.save();
-
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-
-    // Upload file to Firebase
-    const { url } = await uploadAbstractFile(
-      buffer,
-      file.type,
-      abstract.abstractCode
-    );
-
-    // Update abstract with file URL
-    abstract.abstractFileUrl = url;
 
     // Generate QR code
     const qrCodeUrl = await generateQrCodeUrl(abstract.abstractCode);
