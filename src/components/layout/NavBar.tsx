@@ -26,6 +26,7 @@ const navLinks: NavLink[] = [
   { name: "Sponsors", href: "/sponsors" },
   { name: "Blog", href: "/blog" },
   { name: "Contact", href: "/contact" },
+  { name: "Profile", href: "/profile" },
 ];
 
 const NavBar: React.FC = () => {

@@ -58,6 +58,8 @@ export async function sendRegistrationConfirmationEmail({
   registrationCode: string;
 }) {
   const subject = "Registration Confirmation - Pharmair Conference";
+  const profileUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pharmanecia.org"}/profile?regCode=${registrationCode}`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #0369a1; color: white; padding: 20px; text-align: center;">
@@ -69,6 +71,7 @@ export async function sendRegistrationConfirmationEmail({
         <p>Thank you for registering for the Pharmair Conference. Your registration has been received successfully.</p>
         <p>Your registration code is: <strong>${registrationCode}</strong></p>
         <p>Please keep this code for future reference. You'll need it to access the conference materials and for any inquiries.</p>
+        <p>You can view your registration details and track your abstract submissions through your <a href="${profileUrl}" style="color: #0369a1;">Profile Page</a>.</p>
         <p>If you have any questions, please don't hesitate to contact us.</p>
         <p>Best regards,<br>Pharmair Conference Team</p>
       </div>
@@ -96,6 +99,8 @@ export async function sendAbstractSubmissionEmail({
   abstractTitle: string;
 }) {
   const subject = "Abstract Submission Confirmation - Pharmair Conference";
+  const profileUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://pharmanecia.org"}/profile?abstractCode=${abstractCode}`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #0369a1; color: white; padding: 20px; text-align: center;">
@@ -108,6 +113,7 @@ export async function sendAbstractSubmissionEmail({
         <p>Abstract Title: <strong>${abstractTitle}</strong></p>
         <p>Abstract Code: <strong>${abstractCode}</strong></p>
         <p>You will be notified of the review outcome via email. Please keep this code for future reference.</p>
+        <p>You can track the status of your abstract and view all your submission details on your <a href="${profileUrl}" style="color: #0369a1;">Profile Page</a>.</p>
         <p>If you have any questions, please don't hesitate to contact us.</p>
         <p>Best regards,<br>Pharmair Conference Team</p>
       </div>
@@ -188,11 +194,15 @@ export async function sendAbstractReviewEmail({
   name: string;
   abstractTitle: string;
   abstractCode: string;
-  status: "Accepted" | "Rejected";
+  status: "Accepted" | "Rejected" | "Revisions Required";
   comments?: string;
 }) {
   const isAccepted = status === "Accepted";
+  const needsRevisions = status === "Revisions Required";
   const subject = `Abstract ${status} - Pharmair Conference`;
+
+  const profileUrl = `${process.env.NEXT_PUBLIC_API_URL || "https://pharmanecia.org"}/profile?abstractCode=${abstractCode}`;
+
   const html = `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background-color: #0369a1; color: white; padding: 20px; text-align: center;">
@@ -204,13 +214,14 @@ export async function sendAbstractReviewEmail({
         <p>We have completed the review of your abstract submission:</p>
         <p>Abstract Title: <strong>${abstractTitle}</strong></p>
         <p>Abstract Code: <strong>${abstractCode}</strong></p>
-        <p>We are pleased to inform you that your abstract has been <strong>${status}</strong> for presentation at the Pharmair Conference.</p>
         ${
           isAccepted
-            ? `
-          <p>Further instructions regarding your presentation will be sent to you shortly.</p>
-        `
-            : ""
+            ? `<p>We are pleased to inform you that your abstract has been <strong>Accepted</strong> for presentation at the Pharmair Conference.</p>
+               <p>Further instructions regarding your presentation will be sent to you shortly.</p>`
+            : needsRevisions
+              ? `<p>After reviewing your abstract, our committee has determined that <strong>revisions are required</strong> before it can be accepted.</p>
+                 <p>Please review the comments below and submit a revised version through your <a href="${profileUrl}" style="color: #0369a1;">profile page</a>.</p>`
+              : `<p>We regret to inform you that your abstract has been <strong>Rejected</strong> for presentation at the Pharmair Conference.</p>`
         }
         ${
           comments
@@ -222,6 +233,7 @@ export async function sendAbstractReviewEmail({
         `
             : ""
         }
+        <p>You can track your abstract status and all details on your <a href="${profileUrl}" style="color: #0369a1;">profile page</a>.</p>
         <p>If you have any questions, please don't hesitate to contact us.</p>
         <p>Best regards,<br>Pharmair Conference Team</p>
       </div>

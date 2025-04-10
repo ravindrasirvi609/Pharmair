@@ -14,7 +14,8 @@ interface Abstract {
   status: string;
   abstractCode: string;
   createdAt: string;
-  abstractFileUrl?: string; // Add the missing property as optional
+  abstractFileUrl?: string;
+  reviewComment?: string;
 }
 
 export default function AbstractsPage() {
@@ -24,6 +25,13 @@ export default function AbstractsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedAbstract, setSelectedAbstract] = useState<{
+    id: string;
+    status: string;
+  } | null>(null);
+  const [reviewComment, setReviewComment] = useState("");
+  const [updateSuccess, setUpdateSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchAbstracts = async () => {
@@ -68,14 +76,53 @@ export default function AbstractsPage() {
   });
 
   // Function to update abstract status
-  const updateStatus = async (id: string, status: string) => {
-    // This would be implemented to update the status via an API call
-    alert(`Status update for ${id} to ${status} would be implemented here`);
+  const updateStatus = async (id: string, status: string, comment: string) => {
+    try {
+      const response = await fetch(`/api/admin/abstracts/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status, reviewComment: comment }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Update the abstract in the local state
+        setAbstracts((prevAbstracts) =>
+          prevAbstracts.map((abstract) =>
+            abstract._id === id
+              ? { ...abstract, status, reviewComment: comment }
+              : abstract
+          )
+        );
+        setUpdateSuccess(`Abstract status updated to ${status} successfully.`);
+        setTimeout(() => setUpdateSuccess(null), 5000); // Clear success message after 5 seconds
+      } else {
+        setError(data.message || "Failed to update abstract status");
+        setTimeout(() => setError(""), 5000); // Clear error message after 5 seconds
+      }
+    } catch (err) {
+      console.error("Error updating abstract status:", err);
+      setError("Something went wrong while updating the abstract status");
+      setTimeout(() => setError(""), 5000); // Clear error message after 5 seconds
+    }
   };
 
-  // Handle the status change functionality (to be implemented)
+  // Handle the status change functionality
   const handleStatusChange = (id: string, newStatus: string) => {
-    updateStatus(id, newStatus);
+    setSelectedAbstract({ id, status: newStatus });
+    setReviewComment("");
+    setShowModal(true);
+  };
+
+  const handleSubmitStatusChange = () => {
+    if (selectedAbstract) {
+      updateStatus(selectedAbstract.id, selectedAbstract.status, reviewComment);
+      setShowModal(false);
+      setSelectedAbstract(null);
+    }
   };
 
   if (isLoading) {
@@ -106,6 +153,12 @@ export default function AbstractsPage() {
         </Link>
       </div>
 
+      {updateSuccess && (
+        <div className="bg-green-50 p-4 rounded-md mb-4">
+          <p className="text-green-600">{updateSuccess}</p>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white p-4 rounded-lg shadow-md mb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -134,7 +187,7 @@ export default function AbstractsPage() {
               <option value="InReview">In Review</option>
               <option value="Accepted">Accepted</option>
               <option value="Rejected">Rejected</option>
-              <option value="Revisions">Revisions</option>
+              <option value="Revisions">Revisions Required</option>
             </select>
           </div>
           <div>
@@ -225,10 +278,14 @@ export default function AbstractsPage() {
                               ? "bg-yellow-100 text-yellow-800"
                               : abstract.status === "Rejected"
                                 ? "bg-red-100 text-red-800"
-                                : "bg-blue-100 text-blue-800"
+                                : abstract.status === "Revisions"
+                                  ? "bg-purple-100 text-purple-800"
+                                  : "bg-blue-100 text-blue-800"
                         }`}
                       >
-                        {abstract.status}
+                        {abstract.status === "Revisions"
+                          ? "Revisions Required"
+                          : abstract.status}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -260,6 +317,14 @@ export default function AbstractsPage() {
                           Accept
                         </button>
                         <button
+                          className="text-purple-600 hover:text-purple-900"
+                          onClick={() =>
+                            handleStatusChange(abstract._id, "Revisions")
+                          }
+                        >
+                          Request Revisions
+                        </button>
+                        <button
                           className="text-red-600 hover:text-red-900"
                           onClick={() =>
                             handleStatusChange(abstract._id, "Rejected")
@@ -285,6 +350,54 @@ export default function AbstractsPage() {
           </table>
         </div>
       </div>
+
+      {/* Status Change Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full shadow-lg">
+            <h3 className="text-lg font-semibold mb-4">
+              {selectedAbstract?.status === "Accepted" && "Accept Abstract"}
+              {selectedAbstract?.status === "Rejected" && "Reject Abstract"}
+              {selectedAbstract?.status === "Revisions" && "Request Revisions"}
+            </h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Comment for Author
+              </label>
+              <textarea
+                value={reviewComment}
+                onChange={(e) => setReviewComment(e.target.value)}
+                rows={4}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Provide feedback for the author..."
+              ></textarea>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedAbstract(null);
+                }}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-md"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmitStatusChange}
+                className={`px-4 py-2 text-white rounded-md ${
+                  selectedAbstract?.status === "Accepted"
+                    ? "bg-green-500 hover:bg-green-600"
+                    : selectedAbstract?.status === "Rejected"
+                      ? "bg-red-500 hover:bg-red-600"
+                      : "bg-purple-500 hover:bg-purple-600"
+                }`}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
