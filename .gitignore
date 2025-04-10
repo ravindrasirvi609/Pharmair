@@ -30,3 +30,5 @@ coverage
 *.DS_Store
 *.swp
 *.swo
+.env
+.env.example
