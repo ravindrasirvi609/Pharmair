@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { exportFilteredRegistrationsToCSV } from "../../../../utils/csvExport";
 
 interface Registration {
   _id: string;
@@ -14,6 +15,185 @@ interface Registration {
   registrationCode: string;
   createdAt: string;
 }
+
+interface ConfirmDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  title: string;
+  message: string;
+}
+
+// Confirmation Dialog Component
+const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+    >
+      <motion.div
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-md w-full"
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+      >
+        <div className="p-6">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            {title}
+          </h3>
+          <p className="text-gray-600 dark:text-gray-400">{message}</p>
+
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                onConfirm();
+                onClose();
+              }}
+              className="px-4 py-2 bg-indigo-600 border border-transparent rounded-md text-white hover:bg-indigo-700"
+            >
+              Confirm
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+// Email Dialog Component
+interface EmailDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSend: (subject: string, message: string) => void;
+  email: string;
+  name: string;
+}
+
+const EmailDialog: React.FC<EmailDialogProps> = ({
+  isOpen,
+  onClose,
+  onSend,
+  email,
+  name,
+}) => {
+  const [subject, setSubject] = useState<string>(
+    `Information regarding your registration`
+  );
+  const [message, setMessage] = useState<string>(
+    `Dear ${name},\n\nThank you for registering for our event.\n\nBest regards,\nThe Pharmair Team`
+  );
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
+    >
+      <motion.div
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-lg max-w-2xl w-full"
+        initial={{ scale: 0.9 }}
+        animate={{ scale: 1 }}
+      >
+        <div className="border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex justify-between items-center">
+          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            Contact Attendee
+          </h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div className="p-6">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              To
+            </label>
+            <input
+              type="text"
+              value={email}
+              disabled
+              className="block w-full px-3 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-600 dark:text-gray-300 cursor-not-allowed"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Subject
+            </label>
+            <input
+              type="text"
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Message
+            </label>
+            <textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={6}
+              className="block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white sm:text-sm"
+            ></textarea>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 dark:bg-gray-700/50 px-6 py-3 flex justify-end space-x-3">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-600"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => {
+              onSend(subject, message);
+              onClose();
+            }}
+            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Send Email
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
 
 export default function RegistrationsPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
@@ -29,6 +209,13 @@ export default function RegistrationsPage() {
   const [selectedRegistration, setSelectedRegistration] =
     useState<Registration | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [pendingStatusUpdate, setPendingStatusUpdate] = useState<{
+    id: string;
+    status: string;
+  } | null>(null);
+  const [isEmailDialogOpen, setIsEmailDialogOpen] = useState(false);
+  const [emailType, setEmailType] = useState<"contact" | "reminder">("contact");
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -97,7 +284,6 @@ export default function RegistrationsPage() {
   const updateStatus = async (id: string, status: string) => {
     try {
       setIsLoading(true);
-      // This would be implemented to update the status via an API call
       const response = await fetch(`/api/admin/registrations/${id}`, {
         method: "PATCH",
         headers: {
@@ -128,7 +314,30 @@ export default function RegistrationsPage() {
 
   // Handle the status change functionality
   const handleStatusChange = (id: string, newStatus: string) => {
-    updateStatus(id, newStatus);
+    const registration = registrations.find((reg) => reg._id === id);
+
+    if (
+      registration &&
+      registration.paymentStatus === "Pending" &&
+      newStatus === "Confirmed"
+    ) {
+      setPendingStatusUpdate({ id, status: newStatus });
+      setIsConfirmDialogOpen(true);
+    } else {
+      updateStatus(id, newStatus);
+    }
+  };
+
+  // Export registrations to CSV
+  const handleExportCSV = () => {
+    const filters = {
+      searchTerm,
+      statusFilter,
+      paymentFilter,
+      typeFilter,
+    };
+
+    exportFilteredRegistrationsToCSV(registrations, filters);
   };
 
   // View registration details
@@ -137,12 +346,53 @@ export default function RegistrationsPage() {
     setIsModalOpen(true);
   };
 
-  const handleSendReminder = async (email: string) => {
+  // Handle sending email reminders
+  const handleSendReminder = (registration: Registration) => {
+    setSelectedRegistration(registration);
+    setEmailType("reminder");
+    setIsEmailDialogOpen(true);
+  };
+
+  // Handle contact attendee
+  const handleContactAttendee = (registration: Registration) => {
+    setSelectedRegistration(registration);
+    setEmailType("contact");
+    setIsEmailDialogOpen(true);
+  };
+
+  // Send an email (either reminder or general contact)
+  const sendEmail = async (subject: string, message: string) => {
+    if (!selectedRegistration) return;
+
     try {
-      // This would send a payment reminder email
-      alert(`Payment reminder would be sent to ${email}`);
+      setIsLoading(true);
+
+      const response = await fetch("/api/admin/send-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: selectedRegistration.email,
+          subject,
+          message,
+          registrationId: selectedRegistration._id,
+          emailType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Email sent successfully to ${selectedRegistration.email}`);
+      } else {
+        setError("Failed to send email");
+      }
     } catch (error) {
-      console.error("Error sending reminder:", error);
+      console.error("Error sending email:", error);
+      setError("Failed to send email");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -199,6 +449,31 @@ export default function RegistrationsPage() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
+      {/* Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={() => {
+          if (pendingStatusUpdate) {
+            updateStatus(pendingStatusUpdate.id, pendingStatusUpdate.status);
+            setPendingStatusUpdate(null);
+          }
+        }}
+        title="Confirm Registration"
+        message="This registration has a pending payment. Are you sure you want to confirm it anyway?"
+      />
+
+      {/* Email Dialog */}
+      {selectedRegistration && (
+        <EmailDialog
+          isOpen={isEmailDialogOpen}
+          onClose={() => setIsEmailDialogOpen(false)}
+          onSend={sendEmail}
+          email={selectedRegistration.email}
+          name={selectedRegistration.name}
+        />
+      )}
+
       <div className="mb-6 flex flex-wrap justify-between items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -229,9 +504,7 @@ export default function RegistrationsPage() {
           </Link>
           <button
             className="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
-            onClick={() =>
-              alert("Export functionality would be implemented here")
-            }
+            onClick={handleExportCSV}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -293,7 +566,13 @@ export default function RegistrationsPage() {
               <div
                 className="bg-green-500 h-1.5 rounded-full"
                 style={{
-                  width: `${(registrations.filter((reg) => reg.registrationStatus === "Confirmed").length / registrations.length) * 100}%`,
+                  width: `${
+                    (registrations.filter(
+                      (reg) => reg.registrationStatus === "Confirmed"
+                    ).length /
+                      registrations.length) *
+                    100
+                  }%`,
                 }}
               ></div>
             </div>
@@ -315,7 +594,13 @@ export default function RegistrationsPage() {
               <div
                 className="bg-yellow-500 h-1.5 rounded-full"
                 style={{
-                  width: `${(registrations.filter((reg) => reg.registrationStatus === "Pending").length / registrations.length) * 100}%`,
+                  width: `${
+                    (registrations.filter(
+                      (reg) => reg.registrationStatus === "Pending"
+                    ).length /
+                      registrations.length) *
+                    100
+                  }%`,
                 }}
               ></div>
             </div>
@@ -336,7 +621,13 @@ export default function RegistrationsPage() {
               <div
                 className="bg-purple-500 h-1.5 rounded-full"
                 style={{
-                  width: `${(registrations.filter((reg) => reg.paymentStatus === "Completed").length / registrations.length) * 100}%`,
+                  width: `${
+                    (registrations.filter(
+                      (reg) => reg.paymentStatus === "Completed"
+                    ).length /
+                      registrations.length) *
+                    100
+                  }%`,
                 }}
               ></div>
             </div>
@@ -492,7 +783,11 @@ export default function RegistrationsPage() {
             </span>
             <div className="flex border border-gray-300 dark:border-gray-600 rounded-md overflow-hidden">
               <button
-                className={`p-2 ${viewMode === "table" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300" : "bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300"}`}
+                className={`p-2 ${
+                  viewMode === "table"
+                    ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                    : "bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300"
+                }`}
                 onClick={() => setViewMode("table")}
                 aria-label="Table view"
               >
@@ -512,7 +807,11 @@ export default function RegistrationsPage() {
                 </svg>
               </button>
               <button
-                className={`p-2 ${viewMode === "card" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300" : "bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300"}`}
+                className={`p-2 ${
+                  viewMode === "card"
+                    ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300"
+                    : "bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300"
+                }`}
                 onClick={() => setViewMode("card")}
                 aria-label="Card view"
               >
@@ -678,30 +977,36 @@ export default function RegistrationsPage() {
                             >
                               View
                             </button>
-                            <button
-                              className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
-                              onClick={() =>
-                                handleStatusChange(
-                                  registration._id,
-                                  "Confirmed"
-                                )
-                              }
-                              disabled={
-                                registration.registrationStatus === "Confirmed"
-                              }
-                            >
-                              Confirm
-                            </button>
+                            {registration.registrationStatus !==
+                              "Confirmed" && (
+                              <button
+                                className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300"
+                                onClick={() =>
+                                  handleStatusChange(
+                                    registration._id,
+                                    "Confirmed"
+                                  )
+                                }
+                              >
+                                Confirm
+                              </button>
+                            )}
                             {registration.paymentStatus === "Pending" && (
                               <button
                                 className="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300"
-                                onClick={() =>
-                                  handleSendReminder(registration.email)
-                                }
+                                onClick={() => handleSendReminder(registration)}
                               >
                                 Remind
                               </button>
                             )}
+                            <button
+                              className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300"
+                              onClick={() =>
+                                handleContactAttendee(registration)
+                              }
+                            >
+                              Contact
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -785,7 +1090,7 @@ export default function RegistrationsPage() {
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex justify-between">
+                    <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2">
                       <button
                         onClick={() => handleViewDetails(registration)}
                         className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 rounded-full hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/40"
@@ -855,6 +1160,50 @@ export default function RegistrationsPage() {
                           Confirmed
                         </span>
                       )}
+
+                      {registration.paymentStatus === "Pending" && (
+                        <button
+                          onClick={() => handleSendReminder(registration)}
+                          className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-yellow-700 bg-yellow-50 rounded-full hover:bg-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-400 dark:hover:bg-yellow-900/40"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-3.5 w-3.5 mr-1"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                            />
+                          </svg>
+                          Remind
+                        </button>
+                      )}
+
+                      <button
+                        onClick={() => handleContactAttendee(registration)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 rounded-full hover:bg-indigo-100 dark:bg-indigo-900/20 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-3.5 w-3.5 mr-1"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
+                        </svg>
+                        Contact
+                      </button>
                     </div>
                   </div>
                 </motion.div>
@@ -1041,8 +1390,8 @@ export default function RegistrationsPage() {
                   {selectedRegistration.paymentStatus === "Pending" && (
                     <button
                       onClick={() => {
-                        handleSendReminder(selectedRegistration.email);
                         setIsModalOpen(false);
+                        handleSendReminder(selectedRegistration);
                       }}
                       className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-yellow-600 hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     >
@@ -1066,10 +1415,8 @@ export default function RegistrationsPage() {
 
                   <button
                     onClick={() => {
-                      alert(
-                        `Email would be sent to ${selectedRegistration.email}`
-                      );
                       setIsModalOpen(false);
+                      handleContactAttendee(selectedRegistration);
                     }}
                     className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-gray-700 bg-gray-100 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                   >
