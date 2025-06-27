@@ -29,8 +29,7 @@ interface RegistrationFormData {
   country: string;
   postalCode: string;
   participantCategory: ParticipantCategory;
-  dietaryRestrictions: string;
-  specialRequirements: string;
+
   abstractId: string;
 }
 
@@ -58,8 +57,7 @@ export default function RegistrationForm({
     country: "India",
     postalCode: "",
     participantCategory: "academic",
-    dietaryRestrictions: "",
-    specialRequirements: "",
+
     abstractId: abstractId || "",
   });
 
@@ -108,8 +106,6 @@ export default function RegistrationForm({
           formData.participantCategory
         ),
         needAccommodation: false,
-        dietaryRestrictions: formData.dietaryRestrictions,
-        specialRequirements: formData.specialRequirements,
         abstractId: formData.abstractId,
       };
 
@@ -607,36 +603,6 @@ export default function RegistrationForm({
                     <option value="industry">Industry (₹6,000)</option>
                   </select>
                 </div>
-              </div>
-
-              <div className="sm:col-span-6">
-                <label htmlFor="dietaryRestrictions" className={labelClass}>
-                  Dietary Restrictions
-                </label>
-                <input
-                  type="text"
-                  name="dietaryRestrictions"
-                  id="dietaryRestrictions"
-                  value={formData.dietaryRestrictions}
-                  onChange={handleChange}
-                  placeholder="e.g., Vegetarian, Vegan, Gluten-free, etc."
-                  className={inputClass}
-                />
-              </div>
-
-              <div className="sm:col-span-6">
-                <label htmlFor="specialRequirements" className={labelClass}>
-                  Special Requirements or Accessibility Needs
-                </label>
-                <textarea
-                  id="specialRequirements"
-                  name="specialRequirements"
-                  rows={3}
-                  value={formData.specialRequirements}
-                  onChange={handleChange}
-                  placeholder="Please let us know if you have any special requirements or accessibility needs"
-                  className={inputClass}
-                />
               </div>
             </div>
           </motion.div>
