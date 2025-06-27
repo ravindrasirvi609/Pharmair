@@ -113,10 +113,10 @@ export default function ContactPage() {
                       <p className="text-gray-600 dark:text-gray-300">
                         General Inquiries:{" "}
                         <a
-                          href="mailto:info@pharmanecia.org"
+                          href="mailto:info@pharmair.org"
                           className="text-primary-600 dark:text-primary-400 hover:underline"
                         >
-                          info@pharmanecia.org
+                          info@pharmair.org
                         </a>
                         <br />
                         Registration Support:{" "}
@@ -150,7 +150,7 @@ export default function ContactPage() {
                           href="tel:+15551234567"
                           className="text-primary-600 dark:text-primary-400 hover:underline"
                         >
-                          +1 (555) 123-4567
+                          +91 94609-71652
                         </a>
                         <br />
                         Registration Desk:{" "}

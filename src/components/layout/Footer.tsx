@@ -148,7 +148,7 @@ const Footer: React.FC = () => {
                   aria-hidden="true"
                 />
                 <span className="ml-3 text-gray-600 dark:text-gray-400">
-                  +1 (555) 123-4567
+                  +91 94609-71652
                 </span>
               </li>
               <li className="flex">
@@ -157,7 +157,7 @@ const Footer: React.FC = () => {
                   aria-hidden="true"
                 />
                 <span className="ml-3 text-gray-600 dark:text-gray-400">
-                  info@pharmanecia.org
+                  info@pharmair.org
                 </span>
               </li>
             </ul>
