@@ -139,7 +139,7 @@ const Footer: React.FC = () => {
                   aria-hidden="true"
                 />
                 <span className="ml-3 text-gray-600 dark:text-gray-400">
-                  Javits Center, New York, NY 10001, USA
+                  Sultan ul Uloom College of Pharmacy, Hyderabad
                 </span>
               </li>
               <li className="flex">

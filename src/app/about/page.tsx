@@ -213,7 +213,7 @@ export default function AboutPage() {
                       Pharmair 2025 - Coming Soon
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400 mb-3">
-                      New York City, USA
+                      Hyderabad, India
                     </p>
                     <p className="text-gray-700 dark:text-gray-300">
                       Join us for our biggest conference yet, featuring

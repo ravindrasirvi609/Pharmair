@@ -95,13 +95,11 @@ export default function ContactPage() {
                     <div>
                       <h3 className="font-semibold mb-1">Conference Venue</h3>
                       <p className="text-gray-600 dark:text-gray-300">
-                        Javits Center
+                        Sultan ul Uloom College of Pharmacy
                         <br />
-                        429 11th Avenue
+                        Road Number 3, Banjara Hills
                         <br />
-                        New York, NY 10001
-                        <br />
-                        United States
+                        Hyderabad, Telangana 500034
                       </p>
                     </div>
                   </div>

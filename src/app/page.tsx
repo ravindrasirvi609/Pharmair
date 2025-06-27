@@ -25,7 +25,7 @@ import { CountdownTimer } from "@/components/ui/CountdownTimer";
 export default function Home() {
   // Conference details
   const conferenceDate = new Date("September 15, 2025 09:00:00");
-  const conferenceLocation = "Javits Center, New York, NY";
+  const conferenceLocation = "Sultan ul Uloom College of Pharmacy, Hyderabad";
   const conferenceYear = 2025;
 
   // Animation variants

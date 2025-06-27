@@ -247,6 +247,9 @@ export default function RegistrationForm({
               <div className="sm:col-span-6">
                 <label htmlFor="institution" className={labelClass}>
                   Institution/Organization *
+                  <span className="text-xs text-gray-400 ml-2">
+                    (e.g., Sultan ul Uloom College of Pharmacy, Hyderabad)
+                  </span>
                 </label>
                 <input
                   type="text"
@@ -256,6 +259,7 @@ export default function RegistrationForm({
                   value={formData.institution}
                   onChange={handleChange}
                   className={inputClass}
+                  placeholder="Sultan ul Uloom College of Pharmacy, Hyderabad"
                 />
               </div>
 

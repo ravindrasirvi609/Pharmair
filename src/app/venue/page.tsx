@@ -17,9 +17,9 @@ import {
 const hotels = [
   {
     id: 1,
-    name: "Grand Hyatt New York",
-    address: "109 E 42nd St, New York, NY 10017",
-    distance: "0.2 miles from venue",
+    name: "Hotel near Sultan ul Uloom College of Pharmacy",
+    address: "Banjara Hills, Hyderabad, Telangana 500034",
+    distance: "0.2 km from venue",
     rate: "$289/night",
     website: "https://example.com",
     amenities: [
@@ -33,9 +33,9 @@ const hotels = [
   },
   {
     id: 2,
-    name: "The Westin New York",
-    address: "270 W 43rd St, New York, NY 10036",
-    distance: "0.4 miles from venue",
+    name: "Nearby Hotel 2",
+    address: "Masab Tank, Hyderabad, Telangana 500028",
+    distance: "0.4 km from venue",
     rate: "$269/night",
     website: "https://example.com",
     amenities: ["Free Wi-Fi", "Spa", "Fitness Center", "Restaurant", "Pool"],
@@ -44,8 +44,8 @@ const hotels = [
   {
     id: 3,
     name: "Courtyard by Marriott",
-    address: "866 3rd Ave, New York, NY 10022",
-    distance: "0.7 miles from venue",
+    address: "Mehdipatnam, Hyderabad, Telangana 500028",
+    distance: "0.7 km from venue",
     rate: "$219/night",
     website: "https://example.com",
     amenities: ["Free Wi-Fi", "Business Center", "Fitness Center", "Café"],
@@ -54,8 +54,8 @@ const hotels = [
   {
     id: 4,
     name: "NYC Luxury Suites",
-    address: "157 W 47th St, New York, NY 10036",
-    distance: "1.2 miles from venue",
+    address: "Lakdi Ka Pul, Hyderabad, Telangana 500004",
+    distance: "1.2 km from venue",
     rate: "$329/night",
     website: "https://example.com",
     amenities: ["Free Wi-Fi", "Kitchen", "Concierge", "Luxury Amenities"],
@@ -69,7 +69,7 @@ const transportation = {
     {
       name: "John F. Kennedy International Airport (JFK)",
       code: "JFK",
-      distance: "15 miles from venue",
+      distance: "15 km from venue",
       transportOptions: [
         { type: "Taxi/Rideshare", cost: "$55-70", time: "45-60 minutes" },
         { type: "AirTrain + Subway", cost: "$10.75", time: "60-75 minutes" },
@@ -79,7 +79,7 @@ const transportation = {
     {
       name: "LaGuardia Airport (LGA)",
       code: "LGA",
-      distance: "9 miles from venue",
+      distance: "9 km from venue",
       transportOptions: [
         { type: "Taxi/Rideshare", cost: "$35-45", time: "30-45 minutes" },
         { type: "Bus + Subway", cost: "$2.75", time: "45-60 minutes" },
@@ -89,7 +89,7 @@ const transportation = {
     {
       name: "Newark Liberty International Airport (EWR)",
       code: "EWR",
-      distance: "16 miles from venue",
+      distance: "16 km from venue",
       transportOptions: [
         { type: "Taxi/Rideshare", cost: "$65-80", time: "45-60 minutes" },
         {
@@ -105,17 +105,17 @@ const transportation = {
     {
       type: "Subway",
       description:
-        "The Javits Center is a short walk from the 34th St-Hudson Yards subway station (7 line).",
+        "Sultan ul Uloom College of Pharmacy is easily accessible from all major parts of Hyderabad.",
     },
     {
       type: "Bus",
       description:
-        "Several bus routes (M34, M42, M12) stop near the Javits Center.",
+        "Several TSRTC bus routes stop near Sultan ul Uloom College of Pharmacy.",
     },
     {
       type: "Taxi/Rideshare",
       description:
-        "Taxis and rideshare services are readily available throughout New York City.",
+        "Taxis and rideshare services are readily available throughout Hyderabad.",
     },
   ],
 };
@@ -204,19 +204,20 @@ export default function VenuePage() {
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div>
-                  <h2 className="text-3xl font-bold mb-6">Javits Center</h2>
+                  <h2 className="text-3xl font-bold mb-6">
+                    Sultan ul Uloom College of Pharmacy
+                  </h2>
                   <div className="prose dark:prose-invert max-w-none">
                     <p>
                       The 3rd Pharmair International Conference will take place
-                      at the iconic Jacob K. Javits Convention Center, one of
-                      New York City&apos;s Pharmair event venues.
+                      at the renowned Sultan ul Uloom College of Pharmacy, one
+                      of Hyderabad&apos;s Pharmair event venues.
                     </p>
                     <p>
-                      Located in the heart of Manhattan&apos;s West Side, the
-                      Javits Center offers state-of-the-art facilities,
-                      including expansive exhibition halls, modern meeting
-                      rooms, and comfortable spaces for networking and
-                      collaboration.
+                      Located in the heart of Hyderabad, the college offers
+                      state-of-the-art facilities, including expansive
+                      exhibition halls, modern meeting rooms, and comfortable
+                      spaces for networking and collaboration.
                     </p>
                   </div>
 
@@ -226,11 +227,11 @@ export default function VenuePage() {
                       <div>
                         <h3 className="font-semibold">Address</h3>
                         <p className="text-gray-600 dark:text-gray-300">
-                          429 11th Avenue
+                          Road Number 3, Banjara Hills
                           <br />
-                          New York, NY 10001
+                          Hyderabad, Telangana 500034
                           <br />
-                          United States
+                          India
                         </p>
                       </div>
                     </div>
@@ -240,12 +241,12 @@ export default function VenuePage() {
                         <h3 className="font-semibold">Website</h3>
                         <p className="text-gray-600 dark:text-gray-300">
                           <a
-                            href="https://javitscenter.com"
+                            href="https://sultanululoompharmacy.edu.in"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-primary-600 dark:text-primary-400 hover:underline"
                           >
-                            javitscenter.com
+                            sultanululoompharmacy.edu.in
                           </a>
                         </p>
                       </div>
@@ -302,7 +303,7 @@ export default function VenuePage() {
                   <div className="aspect-video rounded-xl overflow-hidden glass">
                     {/* Replace with actual venue image */}
                     <div className="w-full h-full bg-gradient-to-r from-primary-500 to-secondary-500 flex items-center justify-center text-white p-4 text-center">
-                      Javits Center Image Placeholder
+                      Sultan ul Uloom College of Pharmacy Image Placeholder
                       <br />
                       (High-quality image of the venue would go here)
                     </div>
@@ -327,9 +328,7 @@ export default function VenuePage() {
                       Nearby Attractions
                     </h3>
                     <ul className="space-y-2">
-                      <li>
-                        Hudson Yards (0.2 miles) - Shopping & dining complex
-                      </li>
+                      <li>Hyderabad (0.2 miles) - Shopping & dining complex</li>
                       <li>High Line (0.3 miles) - Elevated linear park</li>
                       <li>Times Square (1.0 miles) - Entertainment district</li>
                       <li>
