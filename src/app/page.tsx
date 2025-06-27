@@ -24,7 +24,7 @@ import { CountdownTimer } from "@/components/ui/CountdownTimer";
 
 export default function Home() {
   // Conference details
-  const conferenceDate = new Date("September 15, 2025 09:00:00");
+  const conferenceDate = new Date("August 21, 2025 09:00:00");
   const conferenceLocation = "Sultan ul Uloom College of Pharmacy, Hyderabad";
   const conferenceYear = 2025;
 
@@ -99,7 +99,7 @@ export default function Home() {
 
             <p className="flex items-center text-white/80 mb-2">
               <CalendarIcon className="h-5 w-5 mr-2" />
-              September 15-18, {conferenceYear}
+              21st & 22nd August, {conferenceYear}
             </p>
 
             <p className="flex items-center text-white/80 mb-6">
@@ -356,7 +356,7 @@ export default function Home() {
             {[
               {
                 day: "Day 1",
-                date: "September 15",
+                date: "August 21",
                 title: "Innovation & Discovery",
                 highlights: [
                   "Opening Keynote: The Future of Pharmaceutical Sciences",
@@ -367,35 +367,13 @@ export default function Home() {
               },
               {
                 day: "Day 2",
-                date: "September 16",
+                date: "August 22",
                 title: "Clinical Advances",
                 highlights: [
                   "Keynote: Breakthrough Clinical Trial Designs",
                   "Symposium: Precision Medicine Implementation",
                   "Roundtable: Patient-Centered Drug Development",
                   "Poster Sessions & Exhibition",
-                ],
-              },
-              {
-                day: "Day 3",
-                date: "September 17",
-                title: "Regulatory & Access",
-                highlights: [
-                  "Keynote: Global Regulatory Harmonization",
-                  "Panel: Enhancing Healthcare Access & Equity",
-                  "Workshop: Navigating Approval Pathways",
-                  "Conference Gala Dinner",
-                ],
-              },
-              {
-                day: "Day 4",
-                date: "September 18",
-                title: "Future Perspectives",
-                highlights: [
-                  "Keynote: Ethical Frontiers in Pharmaceutical Innovation",
-                  "Panel: Sustainability in Healthcare Systems",
-                  "Closing Ceremony & Awards Presentation",
-                  "Post-Conference Workshops",
                 ],
               },
             ].map((day, index) => (
@@ -1094,8 +1072,8 @@ export default function Home() {
             </h2>
             <p className="text-xl text-white/90 mb-8">
               Secure your spot at the pharmaceutical industry&apos;s most
-              anticipated event of the year. Early bird registration ends July
-              31, {conferenceYear}.
+              anticipated event of the year. Early bird registration ends 31st
+              July, {conferenceYear}.
             </p>
 
             <div className="flex flex-wrap gap-4 justify-center">
