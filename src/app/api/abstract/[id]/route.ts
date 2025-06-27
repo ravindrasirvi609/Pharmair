@@ -5,10 +5,10 @@ import { sendAbstractSubmissionEmail } from "../../../../lib/services/email";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params;
   try {
-    const { id } = params;
     const { status, abstractFileUrl } = await request.json();
 
     // Connect to the database

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { motion } from "framer-motion";
@@ -69,7 +69,11 @@ export default function ProfilePage() {
         <p className="text-center text-gray-600 dark:text-gray-300 mb-8 max-w-lg mx-auto">
           View and manage your abstract submissions and registration details
         </p>
-        <ProfileContent />
+        <Suspense
+          fallback={<div className="text-center py-10">Loading profile...</div>}
+        >
+          <ProfileContent />
+        </Suspense>
       </motion.div>
     </div>
   );

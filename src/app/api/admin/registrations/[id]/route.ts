@@ -3,51 +3,35 @@ import { NextResponse } from "next/server";
 import Registration from "../../../../../models/Registration"; // Assuming you have a Registration model
 import { connectToDatabase } from "@/lib/db";
 
-interface Params {
-  params: {
-    id: string;
-  };
-}
-
 /**
  * Update registration by ID
  */
-export async function PATCH(request: Request, { params }: Params) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
-
-    const { id } = params;
+    const { id } = await params;
     const updateData = await request.json();
-
-    // Connect to database
     await connectToDatabase();
-
-    // Find and update the registration
     const registration = await Registration.findByIdAndUpdate(
       id,
       { ...updateData, updatedAt: new Date() },
       { new: true, runValidators: true }
     );
-
     if (!registration) {
       return NextResponse.json(
         { success: false, error: "Registration not found" },
         { status: 404 }
       );
     }
-
-    // If status is changed to confirmed, we might want to send a confirmation email
     if (updateData.registrationStatus === "Confirmed") {
-      // Optional: Send confirmation email
       try {
-        // Implementation would depend on your email sending setup
         console.log(`Confirmation status updated for registration ${id}`);
       } catch (emailError) {
         console.error("Error sending confirmation email:", emailError);
-        // Continue with the response even if email fails
       }
     }
-
     return NextResponse.json({
       success: true,
       data: registration,
@@ -64,25 +48,20 @@ export async function PATCH(request: Request, { params }: Params) {
 /**
  * Get registration by ID
  */
-export async function GET(request: Request, { params }: Params) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
-
-    const { id } = params;
-
-    // Connect to database
+    const { id } = await params;
     await connectToDatabase();
-
-    // Find the registration
     const registration = await Registration.findById(id);
-
     if (!registration) {
       return NextResponse.json(
         { success: false, error: "Registration not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json({
       success: true,
       data: registration,
@@ -99,25 +78,20 @@ export async function GET(request: Request, { params }: Params) {
 /**
  * Delete registration by ID
  */
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
-    // Check authentication
-
-    const { id } = params;
-
-    // Connect to database
+    const { id } = await params;
     await connectToDatabase();
-
-    // Find and delete the registration
     const registration = await Registration.findByIdAndDelete(id);
-
     if (!registration) {
       return NextResponse.json(
         { success: false, error: "Registration not found" },
         { status: 404 }
       );
     }
-
     return NextResponse.json({
       success: true,
       message: "Registration deleted successfully",
