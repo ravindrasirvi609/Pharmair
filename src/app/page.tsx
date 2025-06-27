@@ -93,7 +93,7 @@ export default function Home() {
             </h1>
 
             <p className="text-xl md:text-2xl text-white/90 mb-8">
-              The Premier International Conference for Pharmaceutical and
+              The Pharmair International Conference for Pharmaceutical and
               Healthcare Innovation
             </p>
 

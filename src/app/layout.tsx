@@ -17,7 +17,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Pharmair Conference 2025",
   description:
-    "The Premier International Conference for Pharmaceutical and Healthcare Innovation",
+    "The Pharmair International Conference for Pharmaceutical and Healthcare Innovation",
 };
 
 export default function RootLayout({

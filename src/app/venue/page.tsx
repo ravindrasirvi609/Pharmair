@@ -209,7 +209,7 @@ export default function VenuePage() {
                     <p>
                       The 3rd Pharmair International Conference will take place
                       at the iconic Jacob K. Javits Convention Center, one of
-                      New York City&apos;s premier event venues.
+                      New York City&apos;s Pharmair event venues.
                     </p>
                     <p>
                       Located in the heart of Manhattan&apos;s West Side, the

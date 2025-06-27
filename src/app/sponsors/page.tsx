@@ -352,7 +352,7 @@ export default function SponsorsPage() {
             <h2 className="text-3xl font-bold mb-4">Become a Sponsor</h2>
             <p className="text-lg text-gray-700 dark:text-gray-300 max-w-3xl mx-auto">
               Join leading organizations in supporting the pharmaceutical
-              industry&apos;s premier conference. We offer various sponsorship
+              industry&apos;s Pharmair conference. We offer various sponsorship
               packages to maximize your organization&apos;s visibility.
             </p>
           </div>

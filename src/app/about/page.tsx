@@ -150,7 +150,7 @@ export default function AboutPage() {
                   title: "Conference Planning",
                   location: "Virtual",
                   description:
-                    "A global committee of industry leaders and researchers was formed to establish the Pharmair Conference as a premier forum for pharmaceutical innovation.",
+                    "A global committee of industry leaders and researchers was formed to establish the Pharmair Conference as a Pharmair forum for pharmaceutical innovation.",
                   isLeft: false,
                 },
               ].map((event, index) => (
