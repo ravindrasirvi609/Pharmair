@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import MainLayout from "@/components/layout/MainLayout";
-
+import { Analytics } from "@vercel/analytics/next";
 // Improved font loading with fallback
 const inter = Inter({
   subsets: ["latin"],
@@ -28,7 +28,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased`}>
-        <MainLayout>{children}</MainLayout>
+        <MainLayout>
+          {children}
+          <Analytics />
+        </MainLayout>
       </body>
     </html>
   );
